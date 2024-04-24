@@ -103,6 +103,10 @@ The final step before creating new features is to deploy the static environments
 
 At the creation of the repository, a Github Action should have triggered and failed. To deploy prod, click "Re-run jobs" and choose "Re-run all jobs". If your secrets are configured correctly, this should result in the successful deployment of a new environment named "prod" in your PingOne account.
 
+![re-run all jobs](./img/rerunalljobs.png "Re-run All Jobs")
+
+![Prod deployed](./img/proddeployed.png "Prod Deployed")
+
 To deploy the `qa` environment, simply create and push a new branch from prod with the name `qa`:
 
 ```
@@ -112,6 +116,7 @@ git checkout -b qa
 git push origin qa
 ```
 
+![QA deployed](./img/qadeployed.png "QA Deployed")
 
 ## Feature Development
 
@@ -119,9 +124,11 @@ Now that the repository and pipeline are configured, the standard git flow can b
 
 1. Create an GitHub Issue for a new feature request via the UI. GitHub Issue Templates help ensure the requestor provides appropriate information on the issue. Note, your GitHub Issue name will be used to create the PingOne environment.
 
-<!-- image -->
+![](./img/githubissuerequestapp.png)
 
 2. Click "Create a branch" and choose "Checkout Locally" for GitHub to create a development branch and PingOne environment on your behalf.
+
+![](./img/createabranch.png)
 
 3. Once the Github Actions pipeline completes, log in to your PingOne account with a user that has appropriate roles. This may be the organization admin that you signed up with the trial for, or a development user if you have configured roles for it. PingOne should show a new environment with a name similar to your GitHub issue title.
 
@@ -280,9 +287,13 @@ Success! The configuration is valid.
 
 10. Now that the configuration is completely ready, git add, commit, and push the change to GitHub. This push to GitHub will trigger the "Feature Deploy Push" action. However, if you inspect the `Deploy` step, there should be no changed needed! This is because your local environment is using the same remote backend terraform state as the pipeline, so the pushed change to the feature branch is the same as running the local deploy script. 
 
+![](./img/nochangesrequired.png)
+
 > Note - From here, the configuration deployment should not include any more manual changes within the UI of higher environments. PingOne Administrators or Developers may have access to the UI, but it should be for reviewing changes rather than making changes. 
 
 11. Open a Pull request for the feature branch to be merged into the qa branch. This pull request will trigger an action that runs validations similar to what occured in `make devcheck` as well as an important `terraform plan` command. The results of this terraform plan is what the reviewer of the pull request should put emphasis on. In this case, the plan should show one new resource would be created if the pull request is merged. 
+
+![](./img/openpullrequest.png)
 
 12. Upon satisfaction with review, merge the pull request into the qa branch. This merge triggers an action that will deploy the new change.
 
