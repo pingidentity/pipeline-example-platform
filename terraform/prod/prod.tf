@@ -1,10 +1,6 @@
 terraform {
   required_version = ">= 1.6.0"
-  backend "s3" {
-    bucket = "ping-terraform-demo"
-    key    = "prod"
-    region = "us-west-1"
-  }
+  backend "s3" {}
 }
 
 module "base" {
