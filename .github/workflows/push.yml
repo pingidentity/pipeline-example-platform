@@ -42,7 +42,7 @@ jobs:
     steps:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v3
-    - uses: hashicorp/setup-terraform@v2
+    - uses: hashicorp/setup-terraform@v3
     - run: |-
         echo $TERRAFORM_ENV_BASE64 | base64 -d > tfvars
         source tfvars
@@ -80,7 +80,7 @@ jobs:
     steps:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v3
-    - uses: hashicorp/setup-terraform@v2
+    - uses: hashicorp/setup-terraform@v3
     - run: |-
         echo $TERRAFORM_ENV_BASE64 | base64 -d > tfvars
         source tfvars
