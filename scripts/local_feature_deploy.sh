@@ -62,8 +62,9 @@ fi
 
 ## S3 state bucket configuration
 ## local aws default profile will be used
-bucket_name="ping-terraform-demo"
-region="us-west-1"
+## Specify the bucket name and region
+bucket_name=""
+region=""
 key="dev/${_branch}/terraform.tfstate"
 
 ## terraform init

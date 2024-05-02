@@ -1,6 +1,6 @@
 # Ping Platform Example Pipeline
 
-The intention of this repo is to present a simplified reference of how a CICD pipeline could look for Ping Identity solutions. The configuration managed in this covers "platform" components that are complementary to the [infrastructure](https://github.com/pingidentity/pipeline-example-infrastructure) and [application](https://github.com/pingidentity/pipeline-example-application) example pipeline repositories. 
+The intention of this repository is to present a simplified reference demonstrating how a CICD pipeline might work for Ping Identity solutions. The configuration managed in this repository covers "platform" components that are complementary to the [infrastructure](https://github.com/pingidentity/pipeline-example-infrastructure) and [application](https://github.com/pingidentity/pipeline-example-application) example pipeline repositories.
 
 **Infrastructure** - Components dealing with deploying software onto self-managed Kubernetes infrastructure and any configuration that must be delivered directly via the filesystem.
 Platform
@@ -9,58 +9,66 @@ Platform
 
 **Application** - Delivery and configuration of a client application that relies on core services from Platform and Infrastructure.
 
-The use-cases and features shown in this repository are an implementation of the guidance provided from Ping Identity's "[Terraform Best Practices](https://terraform.pingidentity.com/best-practices/)" and "[Getting Started with Configruation Promotion at Ping](https://terraform.pingidentity.com/getting-started/configuration-promotion/)" documents. The use-cases and features shown within a GitOps process of developing and delivering a new feature are:
+The use cases and features shown in this repository are an implementation of the guidance provided from Ping Identity's [Terraform Best Practices](https://terraform.pingidentity.com/best-practices/) and [Getting Started with Configuration Promotion at Ping](https://terraform.pingidentity.com/getting-started/configuration-promotion/) documents.
+
+In this repository, the processes and features shown in a GitOps process of developing and delivering a new feature include:
 
 - Feature Request Template
 - On-demand development environment deployment
-- Building feature in development environment (PingOne UI)
+- Building a feature in development environment (PingOne UI)
 - Extracting feature configuration to be stored as code
-- Validating extracted configuration from developer perspective
-- Validating suggested configuration adheres to contribution guidelines
-- Review process of suggested change. 
-- Approval of change and automatic deployment into higher environments 
+- Validating the extracted configuration from the developer perspective
+- Validating that the suggested configuration adheres to contribution guidelines
+- Review process of suggested change
+- Approval of change and automatic deployment into higher environments
 
 ## Prerequisites
 
-To be successful in re-creating the use-cases supported by this pipeline, there are initial steps that should be completed prior to configuring this repository:
+To be successful in recreating the use cases supported by this pipeline, there are initial steps that should be completed prior to configuring this repository:
 
-- A [PingOne trial](https://docs.pingidentity.com/r/en-us/pingone/p1_start_a_pingone_trial) or paid account configured for [PingOne Terraform access](https://terraform.pingidentity.com/getting-started/pingone/) and [DaVinci Terraform](https://terraform.pingidentity.com/getting-started/davinci/) access guidelines.
-> Note - For PingOne, this means you should have credentials for a worker app residing in the "Administrators" environment that has organization-level scoped roles. For DaVinci, this means you should have credentials for a user in a non-"Administrators" environment that is part of a group specifically intended to be used by command-line tools or APIs with environment-level scoped roles. This demo will add roles to the DaVinci command-line group and will fail if roles are not scoped properly.
-- An [AWS trial](https://aws.amazon.com/free/?all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=*all&awsf.Free%20Tier%20Categories=*all) or paid account 
+- A [PingOne trial](https://docs.pingidentity.com/r/en-us/pingone/p1_start_a_pingone_trial) or paid account configured according to the [PingOne Terraform access](https://terraform.pingidentity.com/getting-started/pingone/) and [DaVinci Terraform](https://terraform.pingidentity.com/getting-started/davinci/) access guidelines.
+
+> Note - For PingOne, meeting these requirements means you should have credentials for a worker app residing in the "Administrators" environment that has organization-level scoped roles. For DaVinci, you should have credentials for a user in a non-"Administrators" environment that is part of a group specifically intended to be used by command-line tools or APIs with environment-level scoped roles. This demonstration will add roles to the DaVinci command-line group and will fail if roles are not scoped properly.
+
+- An [AWS trial](https://aws.amazon.com/free/?all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=*all&awsf.Free%20Tier%20Categories=*all) or paid account
 - Terraform CLI v1.6+
 - [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 - [gh](https://cli.github.com/) the Github CLI utility
 
+### Repository Setup
+
+Click the **Use this template** button at the right of this page to create your own repository.  After the repository is created, clone it to your local machine to continue.  The rest of this guide will assume you are working from the root of the repository.
+
+> Note - A pipeline will run and fail when the repository is created. This result is expected as the pipeline is attempting to deploy and the necessary secrets have not been configured yet.
+
 ## Development Lifecycle Diagram
 
-The use-cases in this repository follow the flow in this diagram:
+The use cases in this repository follow the flow in this diagram:
 
 ![SDLC flow](./img/generic-pipeline.png "Development Flow")
 
 ## Before You Start
 
-There are a few items to configure before using the repository effectively.
+There are a few items to configure before you can use this repository effectively.
 
 ### AWS S3 Bucket for Terraform State Storage
 
-In order to avoid committing private information within terraform state to git, and to have an efficient developer experience, it is a best practice to use a [remote backend for Terraform state](https://developer.hashicorp.com/terraform/language/settings/backends/remote). As such, this example uses AWS S3 for remote state management. 
+In order to avoid committing private information stored in terraform state to a code repository such as Github, and to have an efficient developer experience, it is a best practice to use a [remote backend for Terraform state](https://developer.hashicorp.com/terraform/language/settings/backends/remote). As such, this example uses AWS S3 for remote state management.
 
-The default information for this repository is:
+To avoid potential conflicts, there is no default information provided in this repository for the S3 bucket. The bucket name and region must be configured in the following files:
 
-Bucket name = `ping-terraform-demo`
-Bucket region = `us-west-1`
-
-> Note: To use values other than the default, find and replace those text strings in the repo.
+- Your local secrets file (see the **Github Actions Secrets** section below)
+- local_feature_deploy.sh
 
 Details on appropriate permissions for the S3 bucket and corresponding AWS IAM user can be found on [Hashicorp's S3 Backend documentation](https://developer.hashicorp.com/terraform/language/settings/backends/s3)
-
 
 ### Github CLI and Github Actions Secrets
 
 #### Github CLI
 
 The github cli: `gh` will need to be configured for your repository. Run the command **gh auth login** and follow the prompts.  You will need an access token for your Github account as instructed:
-```
+
+```bash
 gh auth login
 
 ? What account do you want to log into? GitHub.com
@@ -80,22 +88,23 @@ The minimum required scopes are 'repo', 'read:org', 'workflow'.
 
 The Github pipeline actions will depend on sourcing some secrets as ephemeral environment variables. To prepare the secrets in the repository:
 
-First:
-
-```
+```bash
 cp secretstemplate localsecrets
 ```
-And fill in `localsecrets` accordingly. 
+
+Fill in `localsecrets` accordingly.
 
 > Note, `secretstemplate` is intended to be a template file, `localsecrets` is a file that contains credentials but is part of .gitignore and should never be committed into the repository.
 
-Then run the following to upload localsecrets to Github:
+Run the following to upload localsecrets to Github:
 
-```
+```bash
 _secrets="$(base64 -i localsecrets)"
 gh secret set --app actions TERRAFORM_ENV_BASE64 --body $_secrets
 unset _secrets
 ```
+
+> Note - On a Mac, if you have installed the **base64** application using brew, there will be a failure stemming from the first command shown above.  Use the default-installed version of base64 by specifying the path explicitly: `_secrets="$(/usr/bin/base64 -i localsecrets)"`
 
 ### Deploy Prod and QA
 
@@ -109,7 +118,7 @@ At the creation of the repository, a Github Action should have triggered and fai
 
 To deploy the `qa` environment, simply create and push a new branch from prod with the name `qa`:
 
-```
+```bash
 git checkout prod
 git pull origin prod
 git checkout -b qa

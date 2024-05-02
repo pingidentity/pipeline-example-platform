@@ -53,10 +53,16 @@ jobs:
           prod)
             _tfdir=terraform/prod
             terraform -chdir=${_tfdir} init \
+              -backend-config="bucket=$TF_VAR_tf_state_bucket" \
+              -backend-config="region=$TF_VAR_tf_state_region" \
+              -backend-config="key=prod/terraform.tfstate"
             ;;
           qa)
             _tfdir=terraform/qa
             terraform -chdir=${_tfdir} init \
+              -backend-config="bucket=$TF_VAR_tf_state_bucket" \
+              -backend-config="region=$TF_VAR_tf_state_region" \
+              -backend-config="key=qa/terraform.tfstate"
             ;;
           *)
             _tfdir=terraform/dev
@@ -91,10 +97,16 @@ jobs:
           prod)
             _tfdir=terraform/prod
             terraform -chdir=${_tfdir} init \
+              -backend-config="bucket=$TF_VAR_tf_state_bucket" \
+              -backend-config="region=$TF_VAR_tf_state_region" \
+              -backend-config="key=prod/terraform.tfstate"
             ;;
           qa)
             _tfdir=terraform/qa
             terraform -chdir=${_tfdir} init \
+              -backend-config="bucket=$TF_VAR_tf_state_bucket" \
+              -backend-config="region=$TF_VAR_tf_state_region" \
+              -backend-config="key=qa/terraform.tfstate"
             ;;
           *)
             _tfdir=terraform/dev
