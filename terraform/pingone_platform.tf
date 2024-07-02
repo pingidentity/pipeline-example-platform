@@ -54,9 +54,9 @@ resource "pingone_population" "oidc_sdk_pop" {
   }
 }
 
-resource "pingone_application" "worker_app" {
+resource "pingone_application" "davinci_connection_worker" {
   environment_id = pingone_environment.target_environment.id
-  name           = "Worker App"
+  name           = "DaVinci Connection Worker"
   enabled        = true
 
   oidc_options {
@@ -64,6 +64,17 @@ resource "pingone_application" "worker_app" {
     grant_types                 = ["CLIENT_CREDENTIALS"]
     token_endpoint_authn_method = "CLIENT_SECRET_BASIC"
   }
+}
+
+data "pingone_role" "identity_data_admin" {
+  name = "Identity Data Admin"
+}
+
+resource "pingone_application_role_assignment" "single_environment_admin_to_application" {
+  environment_id = pingone_environment.target_environment.id
+  application_id = pingone_application.davinci_connection_worker.id
+  role_id        = data.pingone_role.identity_data_admin.id
+  scope_environment_id = pingone_environment.target_environment.id
 }
 
 ##############################################
