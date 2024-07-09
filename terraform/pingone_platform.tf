@@ -71,9 +71,9 @@ data "pingone_role" "identity_data_admin" {
 }
 
 resource "pingone_application_role_assignment" "single_environment_admin_to_application" {
-  environment_id = pingone_environment.target_environment.id
-  application_id = pingone_application.davinci_connection_worker.id
-  role_id        = data.pingone_role.identity_data_admin.id
+  environment_id       = pingone_environment.target_environment.id
+  application_id       = pingone_application.davinci_connection_worker.id
+  role_id              = data.pingone_role.identity_data_admin.id
   scope_environment_id = pingone_environment.target_environment.id
 }
 

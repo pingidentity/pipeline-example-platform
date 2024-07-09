@@ -63,8 +63,12 @@ fi
 ## S3 state bucket configuration
 ## local aws default profile will be used
 ## Specify the bucket name and region
-bucket_name="ping-terraform-demo"
-region="us-west-1"
+if [ -z "${TF_VAR_tf_state_bucket}" ] || [ -z "${TF_VAR_tf_state_region}" ]; then
+  echo "TF_VAR_tf_state_bucket or TF_VAR_tf_state_region is not set. Please set the appropriate variables in your localsecrets file."
+  exit 1
+fi
+bucket_name="${TF_VAR_tf_state_bucket}"
+region="${TF_VAR_tf_state_region}"
 key="dev/${_branch}/terraform.tfstate"
 
 ## terraform init

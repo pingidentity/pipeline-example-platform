@@ -31,6 +31,6 @@ resource "davinci_connection" "sso" {
 
 resource "davinci_connection" "http" {
   environment_id = pingone_environment.target_environment.id
-  name         = "Http"
-  connector_id = "httpConnector"
+  name           = "Http"
+  connector_id   = "httpConnector"
 }
