@@ -20,5 +20,5 @@ provider "davinci" {
   username       = var.pingone_username
   password       = var.pingone_password
   region         = var.pingone_region
-  environment_id = var.pingone_environment_id
+  environment_id = var.pingone_davinci_environment_id
 }
