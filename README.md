@@ -224,9 +224,9 @@ import {
   b. Run the generate command to generate output. In this repo, the generate command is wrapped in the deploy script:
 
 ```bash
+source localsecrets
 ./scripts/local_feature_deploy.sh --generate
 ```
-> WARNING! Be sure you have updated the **local_feature_deploy.sh** script to include the correct values for the **bucket_name** and **region** variables.
 
 This command will create a file with the generated output at `./terraform/dev/generated-platform.tf`
 
