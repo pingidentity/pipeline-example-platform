@@ -34,3 +34,9 @@ resource "davinci_connection" "http" {
   name           = "Http"
   connector_id   = "httpConnector"
 }
+
+resource "davinci_connection" "annotation" {
+  environment_id = pingone_environment.target_environment.id
+  connector_id   = "annotationConnector"
+  name           = "Annotation"
+}
