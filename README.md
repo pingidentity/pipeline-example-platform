@@ -89,6 +89,9 @@ To be successful in recreating the use cases supported by this pipeline, there a
 - Terraform CLI v1.6+
 - [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 - [gh](https://cli.github.com/) the Github CLI utility
+- Additionally a few command-line tools are recommended for local-development code review:
+  - [tflint](https://github.com/terraform-linters/tflint)
+  - [dvlint](https://github.com/pingidentity/dvlint)
 
 ### Repository Setup
 
