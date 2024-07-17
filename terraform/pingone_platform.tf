@@ -20,7 +20,7 @@ module "pingone_utils" {
   version = "0.0.8"
 
   environment_id = pingone_environment.target_environment.id
-  region         = var.pingone_region
+  region         = var.pingone_client_region
 }
 
 data "pingone_role" "davinci_admin" {
@@ -37,7 +37,7 @@ data "pingone_role" "davinci_admin" {
 
 # PingOne Role Assignment for terraform clients to SSO to new environment
 resource "pingone_group_role_assignment" "terraform_sso_davinci_admin" {
-  environment_id       = var.pingone_davinci_environment_id
+  environment_id       = var.pingone_davinci_admin_environment_id
   group_id             = var.pingone_davinci_terraform_group_id
   role_id              = data.pingone_role.davinci_admin.id
   scope_environment_id = pingone_environment.target_environment.id

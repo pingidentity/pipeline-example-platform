@@ -35,14 +35,15 @@ A worker application in the "Administrators" environment of PingOne (you can use
 
 Information needed from this application (Applications > Applications > <application_name> > Overview):
 
-- `Client ID` - This value will be assigned to **TF_VAR_pingone_client_id** in the localsecrets file (line 2)
-- `Client Secret` - This value will be assigned to **TF_VAR_pingone_client_secret** in the localsecrets file (line 3)
-- `Environment ID` - This value  will be assigned to **TF_VAR_pingone_environment_id** in the localsecrets file (line 4)
+- `Client ID` - This value will be assigned to **TF_VAR_pingone_client_id** in the localsecrets file
+- `Client Secret` - This value will be assigned to **TF_VAR_pingone_client_secret** in the localsecrets file
+- `Environment ID` - This value  will be assigned to **TF_VAR_pingone_client_environment_id** in the localsecrets file
 
 Information needed from the environment in which the application resides (Environment > Settings > Environment Properties):
 
-- `Region` - This value will be assigned to **TF_VAR_pingone_region** in the localsecrets file (line 5)
-- `License ID` - This value will be assigned to **TF_VAR_pingone_license_id** in the localsecrets file (line 6)
+- `Region` - This value will be assigned to **TF_VAR_pingone_client_region** in the localsecrets file
+- `License ID` - This value will be assigned to **TF_VAR_pingone_license_id** in the localsecrets file
+- `Environment Type` - This value will be assigned to **TF_VAR_pingone_environment_type** in the localsecrets file
 
 ### Davinci Administrator Environment, User and Group
 
@@ -54,16 +55,16 @@ An environment with the following characteristics:
 
 Information needed from the user in the Davinci Administrator environment (Directory > Users > <user_name>):
 
-- `Username` - This value will be assigned to **TF_VAR_pingone_username** in the localsecrets file (line 8)
-- `Password` - This value will be assigned to **TF_VAR_pingone_password** in the localsecrets file (line 9).  This password is created when you create and confirm the user.
+- `Username` - This value will be assigned to **TF_VAR_pingone_davinci_admin_username** in the localsecrets file
+- `Password` - This value will be assigned to **TF_VAR_pingone_davinci_admin_password** in the localsecrets file.  This password is created when you create and confirm the user.
 
 Information needed from the environment in which the application resides (Environment > Settings > Environment Properties):
 
-- `Environment ID` - This value will be assigned to **TF_VAR_davinci_environment_id** in the localsecrets file (line 10)
+- `Environment ID` - This value will be assigned to **TF_VAR_pingone_davinci_admin_environment_id** in the localsecrets file
 
 Information needed from the group in the Davinci Administrator environment (Directory > Groups > <group_name>):
 
-- `Group ID` - This value will be assigned to **TF_VAR_pingone_davinci_terraform_group_id** in the localsecrets file (line 12)
+- `Group ID` - This value will be assigned to **TF_VAR_pingone_davinci_terraform_group_id** in the localsecrets file
 
 ### AWS S3 Bucket
 
@@ -72,10 +73,10 @@ An AWS S3 bucket for storing Terraform state, and a user with permissions as spe
 
 Information needed from the AWS S3 bucket and user:
 
-- `AWS Access Key ID` - This value for the user will be assigned to **AWS_ACCESS_KEY_ID** in the localsecrets file (line 14)
-- `AWS Secret Access Key` - This value for the user will be assigned to **AWS_SECRET_ACCESS_KEY** in the localsecrets file (line 15)
-- `Bucket Name` - This value will be assigned to **TF_VAR_tf_state_bucket** in the localsecrets file (line 17)
-- `Bucket region` - This value will be assigned to **TF_VAR_tf_state_region** in the localsecrets file (line 19)
+- `AWS Access Key ID` - This value for the user will be assigned to **AWS_ACCESS_KEY_ID** in the localsecrets file
+- `AWS Secret Access Key` - This value for the user will be assigned to **AWS_SECRET_ACCESS_KEY** in the localsecrets file
+- `Bucket Name` - This value will be assigned to **TF_VAR_tf_state_bucket** in the localsecrets file
+- `Bucket region` - This value will be assigned to **TF_VAR_tf_state_region** in the localsecrets file
 
 ## Prerequisites
 

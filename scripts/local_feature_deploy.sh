@@ -39,6 +39,8 @@ while ! test -z ${1} ; do
       _command="destroy" ;;
     -g|--generate)
       _command="plan -generate-config-out=generated-platform.tf" ;;
+    -v|--verbose)
+      set -x ;;
     -h|--help)
       exit_usage "" ;;
     *)
@@ -53,7 +55,7 @@ done
 checkVars
 
 _branch=$(git rev-parse --abbrev-ref HEAD)
-export TFDIR="terraform/dev"
+export TFDIR="terraform"
 
 if test "$_branch" = "prod" || test  "$_branch" = qa ; then
   echo "You are on a non-dev branch. Please checkout to your feature branch to run this script."
@@ -67,15 +69,15 @@ if [ -z "${TF_VAR_tf_state_bucket}" ] || [ -z "${TF_VAR_tf_state_region}" ]; the
   echo "TF_VAR_tf_state_bucket or TF_VAR_tf_state_region is not set. Please set the appropriate variables in your localsecrets file."
   exit 1
 fi
-bucket_name="${TF_VAR_tf_state_bucket}"
-region="${TF_VAR_tf_state_region}"
-key="dev/${_branch}/terraform.tfstate"
+_bucket_name="${TF_VAR_tf_state_bucket}"
+_region="${TF_VAR_tf_state_region}"
+_key="${TF_VAR_tf_state_key_prefix}/dev/${_branch}/terraform.tfstate"
 
 ## terraform init
 terraform -chdir="${TFDIR}" init -migrate-state \
-  -backend-config="bucket=${bucket_name}" \
-  -backend-config="region=${region}" \
-  -backend-config="key=${key}"
+  -backend-config="bucket=${_bucket_name}" \
+  -backend-config="region=${_region}" \
+  -backend-config="key=${_key}"
 
 ## terraform apply
 

@@ -1,10 +1,10 @@
-variable "pingone_username" {
+variable "pingone_client_region" {
   type = string
 }
-variable "pingone_password" {
+variable "pingone_client_environment_id" {
   type = string
 }
-variable "pingone_region" {
+variable "pingone_license_id" {
   type = string
 }
 variable "pingone_client_id" {
@@ -13,19 +13,16 @@ variable "pingone_client_id" {
 variable "pingone_client_secret" {
   type = string
 }
-variable "pingone_environment_id" {
+variable "pingone_davinci_admin_username" {
   type = string
 }
-variable "pingone_davinci_environment_id" {
+variable "pingone_davinci_admin_password" {
   type = string
 }
-# variable "pingone_davinci_user_group_id" {
-#   type = string
-# }
+variable "pingone_davinci_admin_environment_id" {
+  type = string
+}
 variable "pingone_davinci_terraform_group_id" {
-  type = string
-}
-variable "pingone_license_id" {
   type = string
 }
 variable "pingone_environment_name" {

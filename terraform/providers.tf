@@ -1,8 +1,8 @@
 provider "pingone" {
   client_id      = var.pingone_client_id
   client_secret  = var.pingone_client_secret
-  environment_id = var.pingone_environment_id
-  region         = var.pingone_region
+  environment_id = var.pingone_client_environment_id
+  region         = var.pingone_client_region
 
   global_options {
     environment {
@@ -17,8 +17,8 @@ provider "pingone" {
 }
 
 provider "davinci" {
-  username       = var.pingone_username
-  password       = var.pingone_password
-  region         = var.pingone_region
-  environment_id = var.pingone_davinci_environment_id
+  username       = var.pingone_davinci_admin_username
+  password       = var.pingone_davinci_admin_password
+  region         = var.pingone_client_region
+  environment_id = var.pingone_davinci_admin_environment_id
 }
