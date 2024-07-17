@@ -7,13 +7,13 @@ resource "davinci_connection" "sso" {
   property {
     name  = "clientId"
     type  = "string"
-    value = pingone_application.davinci_connection_worker.oidc_options[0].client_id
+    value = pingone_application.davinci_connection_worker.oidc_options.client_id
   }
 
   property {
     name  = "clientSecret"
     type  = "string"
-    value = pingone_application.davinci_connection_worker.oidc_options[0].client_secret
+    value = pingone_application_secret.davinci_connection_worker.secret
   }
 
   property {
