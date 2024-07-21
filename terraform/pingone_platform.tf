@@ -4,23 +4,16 @@ resource "pingone_environment" "target_environment" {
   type        = var.pingone_environment_type
   license_id  = var.pingone_license_id
 
-  service {
-    type = "MFA"
-  }
+  services = [
+    {
+      type = "MFA"
+    },
+    {
+      type = "DaVinci"
+      tags = ["DAVINCI_MINIMAL"]
+    }
+  ]
 
-  service {
-    type = "DaVinci"
-    tags = ["DAVINCI_MINIMAL"]
-  }
-
-}
-
-module "pingone_utils" {
-  source  = "pingidentity/utils/pingone"
-  version = "0.0.8"
-
-  environment_id = pingone_environment.target_environment.id
-  region         = var.pingone_region
 }
 
 data "pingone_role" "davinci_admin" {
@@ -37,7 +30,7 @@ data "pingone_role" "davinci_admin" {
 
 # PingOne Role Assignment for terraform clients to SSO to new environment
 resource "pingone_group_role_assignment" "terraform_sso_davinci_admin" {
-  environment_id       = var.pingone_davinci_environment_id
+  environment_id       = var.pingone_davinci_admin_environment_id
   group_id             = var.pingone_davinci_terraform_group_id
   role_id              = data.pingone_role.davinci_admin.id
   scope_environment_id = pingone_environment.target_environment.id
@@ -59,11 +52,16 @@ resource "pingone_application" "davinci_connection_worker" {
   name           = "DaVinci Connection Worker"
   enabled        = true
 
-  oidc_options {
-    type                        = "WORKER"
-    grant_types                 = ["CLIENT_CREDENTIALS"]
-    token_endpoint_authn_method = "CLIENT_SECRET_BASIC"
+  oidc_options = {
+    type                       = "WORKER"
+    grant_types                = ["CLIENT_CREDENTIALS"]
+    token_endpoint_auth_method = "CLIENT_SECRET_BASIC"
   }
+}
+
+resource "pingone_application_secret" "davinci_connection_worker" {
+  environment_id = pingone_environment.target_environment.id
+  application_id = pingone_application.davinci_connection_worker.id
 }
 
 data "pingone_role" "identity_data_admin" {
@@ -190,7 +188,7 @@ resource "pingone_notification_template_content" "email" {
   template_name  = "general"
   locale         = "en"
 
-  email {
+  email = {
     body    = <<EOT
 <div style="display: block; text-align: center; font-family: sans-serif; border: 1px solid #c5c5c5; width: 400px; padding: 50px 30px;">
 <img class="align-self-center mb-5" src="$${logoUrl}" alt="$${companyName}" style="$${logoStyle}"/>
@@ -203,7 +201,7 @@ resource "pingone_notification_template_content" "email" {
 EOT
     subject = "Magic Link Authentication"
 
-    from {
+    from = {
       name    = "PingOne"
       address = "noreply@pingidentity.com"
     }

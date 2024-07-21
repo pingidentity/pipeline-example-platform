@@ -46,32 +46,24 @@ jobs:
     - run: |-
         echo $TERRAFORM_ENV_BASE64 | base64 -d > tfvars
         source tfvars
-        _tfdir=""
+        _tfdir=terraform
         _branch=$(echo "${GITHUB_REF}" | sed -e "s#refs/heads/##g")
         export TF_VAR_pingone_environment_name=${_branch}
         case $_branch in
           prod)
-            _tfdir=terraform/prod
-            terraform -chdir=${_tfdir} init \
-              -backend-config="bucket=$TF_VAR_tf_state_bucket" \
-              -backend-config="region=$TF_VAR_tf_state_region" \
-              -backend-config="key=prod/terraform.tfstate"
+            _stateKey="${TF_VAR_tf_state_key_prefix}/prod/terraform.tfstate"
             ;;
           qa)
-            _tfdir=terraform/qa
-            terraform -chdir=${_tfdir} init \
-              -backend-config="bucket=$TF_VAR_tf_state_bucket" \
-              -backend-config="region=$TF_VAR_tf_state_region" \
-              -backend-config="key=qa/terraform.tfstate"
+            _stateKey="${TF_VAR_tf_state_key_prefix}/qa/terraform.tfstate"
             ;;
           *)
-            _tfdir=terraform/dev
-            terraform -chdir=${_tfdir} init \
-              -backend-config="bucket=$TF_VAR_tf_state_bucket" \
-              -backend-config="region=$TF_VAR_tf_state_region" \
-              -backend-config="key=dev/${TF_VAR_pingone_environment_name}/terraform.tfstate"
+            _stateKey="${TF_VAR_tf_state_key_prefix}/dev/${_branch}/terraform.tfstate"
             ;;
         esac
+        terraform -chdir=${_tfdir} init \
+          -backend-config="bucket=$TF_VAR_tf_state_bucket" \
+          -backend-config="region=$TF_VAR_tf_state_region" \
+          -backend-config="key=${_stateKey}"
         echo "***Running terraform validate***"
         terraform -chdir=${_tfdir} validate
         
@@ -90,31 +82,23 @@ jobs:
     - run: |-
         echo $TERRAFORM_ENV_BASE64 | base64 -d > tfvars
         source tfvars
-        _tfdir=""
+        _tfdir=terraform
         _branch=$(echo "${GITHUB_REF}" | sed -e "s#refs/heads/##g")
         export TF_VAR_pingone_environment_name=${_branch}
         case $_branch in
           prod)
-            _tfdir=terraform/prod
-            terraform -chdir=${_tfdir} init \
-              -backend-config="bucket=$TF_VAR_tf_state_bucket" \
-              -backend-config="region=$TF_VAR_tf_state_region" \
-              -backend-config="key=prod/terraform.tfstate"
+            _stateKey="${TF_VAR_tf_state_key_prefix}/prod/terraform.tfstate"
             ;;
           qa)
-            _tfdir=terraform/qa
-            terraform -chdir=${_tfdir} init \
-              -backend-config="bucket=$TF_VAR_tf_state_bucket" \
-              -backend-config="region=$TF_VAR_tf_state_region" \
-              -backend-config="key=qa/terraform.tfstate"
+            _stateKey="${TF_VAR_tf_state_key_prefix}/qa/terraform.tfstate"
             ;;
           *)
-            _tfdir=terraform/dev
-            terraform -chdir=${_tfdir} init \
-              -backend-config="bucket=$TF_VAR_tf_state_bucket" \
-              -backend-config="region=$TF_VAR_tf_state_region" \
-              -backend-config="key=dev/${TF_VAR_pingone_environment_name}/terraform.tfstate"
+            _stateKey="${TF_VAR_tf_state_key_prefix}/dev/${_branch}/terraform.tfstate"
             ;;
         esac
+        terraform -chdir=${_tfdir} init \
+          -backend-config="bucket=$TF_VAR_tf_state_bucket" \
+          -backend-config="region=$TF_VAR_tf_state_region" \
+          -backend-config="key=${_stateKey}"
         echo "***Running terraform apply***"
         terraform -chdir=${_tfdir} apply --auto-approve

@@ -22,7 +22,7 @@ jobs:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
     - run: |-
-        _tfdir=terraform/dev
+        _tfdir=terraform
         echo $TERRAFORM_ENV_BASE64 | base64 -d > tfvars
         source tfvars
         echo "base: ${GITHUB_BASE_REF}"
@@ -32,5 +32,9 @@ jobs:
         terraform -chdir=${_tfdir} init \
           -backend-config="bucket=$TF_VAR_tf_state_bucket" \
           -backend-config="region=$TF_VAR_tf_state_region" \
-          -backend-config="key=dev/${TF_VAR_pingone_environment_name}/terraform.tfstate"
-        terraform -chdir=${_tfdir} destroy --auto-approve
+          -backend-config="key=${TF_VAR_tf_state_key_prefix}/dev/${TF_VAR_pingone_environment_name}/terraform.tfstate"
+        terraform -chdir=${_tfdir} destroy \
+          -backend-config="bucket=$TF_VAR_tf_state_bucket" \
+          -backend-config="region=$TF_VAR_tf_state_region" \
+          -backend-config="key=${TF_VAR_tf_state_key_prefix}/dev/${TF_VAR_pingone_environment_name}/terraform.tfstate" \
+          --auto-approve

@@ -35,14 +35,15 @@ A worker application in the "Administrators" environment of PingOne (you can use
 
 Information needed from this application (Applications > Applications > <application_name> > Overview):
 
-- `Client ID` - This value will be assigned to **TF_VAR_pingone_client_id** in the localsecrets file (line 2)
-- `Client Secret` - This value will be assigned to **TF_VAR_pingone_client_secret** in the localsecrets file (line 3)
-- `Environment ID` - This value  will be assigned to **TF_VAR_pingone_environment_id** in the localsecrets file (line 4)
+- `Client ID` - This value will be assigned to **TF_VAR_pingone_client_id** in the localsecrets file
+- `Client Secret` - This value will be assigned to **TF_VAR_pingone_client_secret** in the localsecrets file
+- `Environment ID` - This value  will be assigned to **TF_VAR_pingone_client_environment_id** in the localsecrets file
 
 Information needed from the environment in which the application resides (Environment > Settings > Environment Properties):
 
-- `Region` - This value will be assigned to **TF_VAR_pingone_region** in the localsecrets file (line 5)
-- `License ID` - This value will be assigned to **TF_VAR_pingone_license_id** in the localsecrets file (line 6)
+- `Region` - This value will be assigned to **TF_VAR_pingone_client_region_code** in the localsecrets file
+- `License ID` - This value will be assigned to **TF_VAR_pingone_license_id** in the localsecrets file
+- `Environment Type` - This value will be assigned to **TF_VAR_pingone_environment_type** in the localsecrets file
 
 ### Davinci Administrator Environment, User and Group
 
@@ -54,16 +55,18 @@ An environment with the following characteristics:
 
 Information needed from the user in the Davinci Administrator environment (Directory > Users > <user_name>):
 
-- `Username` - This value will be assigned to **TF_VAR_pingone_username** in the localsecrets file (line 8)
-- `Password` - This value will be assigned to **TF_VAR_pingone_password** in the localsecrets file (line 9).  This password is created when you create and confirm the user.
+- `Username` - This value will be assigned to **TF_VAR_pingone_davinci_admin_username** in the localsecrets file
+- `Password` - This value will be assigned to **TF_VAR_pingone_davinci_admin_password** in the localsecrets file.  This password is created when you create and confirm the user.
 
 Information needed from the environment in which the application resides (Environment > Settings > Environment Properties):
 
-- `Environment ID` - This value will be assigned to **TF_VAR_davinci_environment_id** in the localsecrets file (line 10)
+- `Environment ID` - This value will be assigned to **TF_VAR_pingone_davinci_admin_environment_id** in the localsecrets file
+
+- `Region` - This value will be assigned to **TF_VAR_pingone_davinci_admin_region** in the localsecrets file
 
 Information needed from the group in the Davinci Administrator environment (Directory > Groups > <group_name>):
 
-- `Group ID` - This value will be assigned to **TF_VAR_pingone_davinci_terraform_group_id** in the localsecrets file (line 12)
+- `Group ID` - This value will be assigned to **TF_VAR_pingone_davinci_terraform_group_id** in the localsecrets file
 
 ### AWS S3 Bucket
 
@@ -72,10 +75,10 @@ An AWS S3 bucket for storing Terraform state, and a user with permissions as spe
 
 Information needed from the AWS S3 bucket and user:
 
-- `AWS Access Key ID` - This value for the user will be assigned to **AWS_ACCESS_KEY_ID** in the localsecrets file (line 14)
-- `AWS Secret Access Key` - This value for the user will be assigned to **AWS_SECRET_ACCESS_KEY** in the localsecrets file (line 15)
-- `Bucket Name` - This value will be assigned to **TF_VAR_tf_state_bucket** in the localsecrets file (line 17)
-- `Bucket region` - This value will be assigned to **TF_VAR_tf_state_region** in the localsecrets file (line 19)
+- `AWS Access Key ID` - This value for the user will be assigned to **AWS_ACCESS_KEY_ID** in the localsecrets file
+- `AWS Secret Access Key` - This value for the user will be assigned to **AWS_SECRET_ACCESS_KEY** in the localsecrets file
+- `Bucket Name` - This value will be assigned to **TF_VAR_tf_state_bucket** in the localsecrets file
+- `Bucket region` - This value will be assigned to **TF_VAR_tf_state_region** in the localsecrets file
 
 ## Prerequisites
 
@@ -187,7 +190,16 @@ git push origin qa
 
 ## Feature Development
 
-Now that the repository and pipeline are configured, the standard git flow can be followed. To experience the developer's perspective, the following steps will revolve around the use case of adding a new OIDC web application configuration into the PingOne production environment.
+Now that the repository and pipeline are configured, the general recommended developer approach is available. This approach consists of:
+
+- [Launch feature development environment](#launch-feature-development-environment)
+- [Make new configurations via console](#make-new-configurations-via-console)
+- [Extract and review new configuration](#extract-and-review-new-configuration)
+- [Commit code for test, review and promotion](#commit-code-for-review-and-promotion)
+
+To experience the developer's perspective, a demo walk through of the steps follows. The demo will revolve around the use case of adding a new OIDC web application configuration into the PingOne production environment.
+
+### Launch Feature Development Environment
 
 1. Create a GitHub Issue for a new feature request via the UI. GitHub Issue Templates help ensure the requestor provides appropriate information on the issue. Note: The GitHub issue name will be used to create the PingOne environment.
 
@@ -197,77 +209,76 @@ Now that the repository and pipeline are configured, the standard git flow can b
 
 ![Create a branch](./img/createabranch.png "Create a branch")
 
-3. After the Github Actions pipeline completes, log in to your PingOne account with a user that has appropriate roles. This user may be the organization administrator with which you signed up for the trial or a development user if you have configured roles for it. PingOne should show a new environment with a name similar to your GitHub issue title.
+### Make New Configurations Via Console
 
-4. Build the requested configuration by navigating into the environment: **Applications** > **Applications** > Click the blue **+** and provide the information:
+1. After the Github Actions pipeline completes, log in to your PingOne account with a user that has appropriate roles. This user may be the organization administrator with which you signed up for the trial or a development user if you have configured roles for it. PingOne should show a new environment with a name similar to your GitHub issue title.
+
+2. Build the requested configuration by navigating into the environment: **Applications** > **Applications** > Click the blue **+** and provide the information:
 
 - Application Name: my-awesome-oidc-web-app
 - Application Type: OIDC Web App
 
-5. Click **Save** and toggle the **Enable** switch. On the screen where the application is enabled, the **Environment ID** and application **Client ID** will also be shown. Capture these for use in the import process.
+3. Click **Save** and toggle the **Enable** switch. On the screen where the application is enabled, the **Environment ID** and application **Client ID** will also be shown. Capture these for use in the import process.
 
-6. Typically the next step would be to provide the application details to the developer team for testing. This process is skipped in here for brevity.
+4. Typically the next step would be to provide the application details to the developer team for testing. This process is skipped for brevity.
 
-7. After the application creation is "tested" manually, the new configuration must be added to the Terraform configuration. This addition will happen in a few steps, starting with creating and testing the configuration in the `./terraform/dev` folder.
+#### Extract and Review New Configuration
 
-  a. Terraform provides a [tool to help generate configuration](https://developer.hashicorp.com/terraform/language/import) for resources built directly in the environment. To leverage this tool as a developer, an import block will be added to `./terraform/dev/imports.tf`. Create this file now, adding lines similar to the following: 
+After the application creation is "tested" manually, the new configuration must be added to the Terraform configuration. This addition will happen in a few steps, starting with creating and testing the configuration in the `./terraform` folder.
+
+1. Terraform provides a [tool to help generate configuration](https://developer.hashicorp.com/terraform/language/import) for resources built directly in the environment. To leverage this tool as a developer, an import block will be added in a new file: `./terraform/imports.tf`. Create this file now, adding lines similar to the following:
 
 ```hcl
 import {
   to = pingone_application.my_awesome_oidc_web_app
-  id = "environment_id/client_id"
+  id = "{environment_id}/{client_id}"
 }
 ```
 
-> Note: This file is not intended to be committed to Github and is included in **.gitignore**. To understand the values to be provided in the id attribute of any resource, the developer should refer to that resources documentation on registry.terraform.io.
+> Note: This file is not intended to be committed to Github and is included in **.gitignore**. To understand the values to be provided in the id attribute of any resource, the developer should refer to the corresponding resource documentation on registry.terraform.io.
 
-  b. Run the generate command to generate output. In this repo, the generate command is wrapped in the deploy script:
+2. Run the generate command to generate output. In this repo, the generate command is wrapped in the deploy script:
 
 ```bash
-source localsecrets
 ./scripts/local_feature_deploy.sh --generate
 ```
 
-This command will create a file with the generated output at `./terraform/dev/generated-platform.tf`
+This command will create a file with the generated output at `./terraform/generated-platform.tf`
 
-However, the command line should have also returned an error similar to the following:
+However, the command line may also return errors, for example:
 
 ```log
 Planning failed. Terraform encountered an error while generating this plan.
 
 ╷
-│ Error: expected refresh_token_duration to be in the range (60 - 2147483647), got 0
-│ 
-│   with pingone_application.my_awesome_oidc_web_app,
-│   on generated-platform.tf line 22:
-│   (source code not available)
-│ 
-╵
-╷
-│ Error: expected refresh_token_rolling_duration to be in the range (60 - 2147483647), got 0
-│ 
-│   with pingone_application.my_awesome_oidc_web_app,
-│   on generated-platform.tf line 23:
-│   (source code not available)
+│ Error: attribute "oidc_options": attribute "client_id" is required
 ```
 
-Terraform's import feature may frequently return errors due to complications with resource schemas. When this occurs the developer is typically able to correct the issue by reading the error.
+Terraform's import feature may frequently return errors due to complications with resource schemas. When this occurs the developer is expected to correct the issue by reading the error.
 
-  c. To resolve the error, two attributes in the generated configuration must be updated:
+3. Review the errors and attempt to correct them then trigger the deploy script, but do not accept the plan. Instead continue to review and adjust the resources until satisfied with the plan. Adjustment may mean correcting errors and removing null attributes. The target configuration is a plan that *only* includes imports.
 
-```yaml
-    refresh_token_duration                             = 0
-    refresh_token_rolling_duration                     = 0
+After removing the null value attributes, the following configuration is left:
+```
+resource "pingone_application" "my_awesome_oidc_web_app" {
+  environment_id               = "<redacted-environment-id>"
+  name                         = "my awesome oidc web app"
+  oidc_options = {
+    additional_refresh_token_replay_protection_enabled = true
+    device_polling_interval                            = 5
+    device_timeout                                     = 600
+    grant_types                                        = ["AUTHORIZATION_CODE"]
+    par_requirement                                    = "OPTIONAL"
+    par_timeout                                        = 60
+    pkce_enforcement                                   = "OPTIONAL"
+    response_types                                     = ["CODE"]
+    token_endpoint_auth_method                         = "CLIENT_SECRET_BASIC"
+    type                                               = "WEB_APP"
+  }
+}
 ```
 
-becomes
-
-```yaml
-    refresh_token_duration                             = 60
-    refresh_token_rolling_duration                     = 60
-```
-
-  d. After correcting the generated configuration, run the script again to import the resource into terraform's managed state:
+And the deploy script shows an acceptable import and change:
 
 ```bash
 ./scripts/local_feature_deploy.sh   
@@ -276,8 +287,36 @@ Initializing the backend...
 Initializing modules...
 ... trimmed extra lines ...
 
-            support_unsigned_request_object                    = false
-            token_endpoint_authn_method                        = "CLIENT_SECRET_BASIC"
+  # pingone_application.sample_oidc will be updated in-place
+  # (imported from "6a7e4eb9-bba0-434d-9a7b-c66f61f84ad7/ac57493a-ec0a-4ea4-b49c-531bed23f965")
+  ~ resource "pingone_application" "my_awesome_oidc_web_app" {
+      + access_control_role_type = (known after apply)
+      ~ enabled                  = true -> false
+        environment_id           = "<redacted-environment-id"
+        hidden_from_app_portal   = false
+        id                       = "<redacted-client-id>"
+        name                     = "my awesome oidc web app"
+      ~ oidc_options             = {
+            additional_refresh_token_replay_protection_enabled = true
+          + allow_wildcard_in_redirect_uris                    = false
+            client_id                                          = "ac57493a-ec0a-4ea4-b49c-531bed23f965"
+            device_polling_interval                            = 5
+            device_timeout                                     = 600
+            grant_types                                        = [
+                "AUTHORIZATION_CODE",
+            ]
+          + mobile_app                                         = (known after apply)
+            par_requirement                                    = "OPTIONAL"
+            par_timeout                                        = 60
+            pkce_enforcement                                   = "OPTIONAL"
+          + refresh_token_duration                             = 2592000
+          + refresh_token_rolling_duration                     = 15552000
+          + require_signed_request_object                      = false
+            response_types                                     = [
+                "CODE",
+            ]
+          + support_unsigned_request_object                    = false
+            token_endpoint_auth_method                         = "CLIENT_SECRET_BASIC"
             type                                               = "WEB_APP"
         }
     }
@@ -289,47 +328,27 @@ Do you want to perform these actions?
   Only 'yes' will be accepted to approve.
 ```
 
-  e. Accept the plan by typing **yes** and allow it to complete. When finished, the deploy script can be run again to confirm there are no missed changes and signal that this configuration is ready to move into the base module.
+4. Accept the plan by typing **yes** and allow it to complete. When finished, the deploy script can be run again to confirm there are no missed changes and signal that this configuration is ready to move into the base module.
 
-8. Copy the new configuration into the base module at `/terraform/pingone_platform.tf`. Note, because this configuration is general for each environment, the **environment_id** attribute must be updated accordingly. The final new resource should look similar to:
+```bash
+No changes. Your infrastructure matches the configuration.
 
-```hcl
-resource "pingone_application" "my_awesome_oidc_web_app" {
-  access_control_role_type = null
-  description              = null
-  enabled                  = true
-  environment_id           = pingone_environment.target_environment.id
-  hidden_from_app_portal   = false
-  login_page_url           = null
-  name                     = "my awesome oidc web app"
-  tags                     = []
-  oidc_options {
-    additional_refresh_token_replay_protection_enabled = true
-    allow_wildcards_in_redirect_uris                   = false
-    grant_types                                        = ["AUTHORIZATION_CODE"]
-    home_page_url                                      = null
-    initiate_login_uri                                 = null
-    jwks                                               = null
-    jwks_url                                           = null
-    par_requirement                                    = "OPTIONAL"
-    par_timeout                                        = 60
-    pkce_enforcement                                   = "OPTIONAL"
-    post_logout_redirect_uris                          = []
-    redirect_uris                                      = []
-    refresh_token_duration                             = 60
-    refresh_token_rolling_duration                     = 60
-    refresh_token_rolling_grace_period_duration        = 0
-    require_signed_request_object                      = false
-    response_types                                     = ["CODE"]
-    support_unsigned_request_object                    = false
-    target_link_uri                                    = null
-    token_endpoint_authn_method                        = "CLIENT_SECRET_BASIC"
-    type                                               = "WEB_APP"
-  }
-}
+Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are needed.
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+pingone_environment_id = "6a7e4eb9-bba0-434d-9a7b-c66f61f84ad7"
 ```
 
-9. A `git status` command should show the file changed with your new configuration:
+5. **Move** the new, generated configuration out of the generated-platform.tf file and into the base module at the bottom of `/terraform/pingone_platform.tf`. Then update the **environment_id** attribute to reference the environment created by Terraform: `pingone_environment.target_environment.id`.
+
+6. Delete terraform/imports.tf and generated-platform.tf as they are no longer needed. Another run of the deploy script should show no changes needed.
+
+### Commit Code for Review and Promotion
+
+1. A `git status` command should show the only file with new configuration:
 
 ```bash
 git status                       

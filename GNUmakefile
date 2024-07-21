@@ -1,4 +1,4 @@
-DEV_DIR:=./terraform/dev
+DEV_DIR:=./terraform
 default: devcheck
 
 fmt:
