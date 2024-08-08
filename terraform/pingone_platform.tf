@@ -37,7 +37,7 @@ resource "pingone_group_role_assignment" "terraform_sso_davinci_admin" {
 }
 
 # PingOne Population
-resource "pingone_population" "oidc_sdk_pop" {
+resource "pingone_population_default" "sample_users" {
   environment_id = pingone_environment.target_environment.id
   name           = "Sample Users"
   description    = "Sample Population"
