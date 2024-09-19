@@ -37,7 +37,7 @@ Information needed from this application (Applications > Applications > <applica
 
 - `Client ID` - This value will be assigned to **TF_VAR_pingone_client_id** in the localsecrets file
 - `Client Secret` - This value will be assigned to **TF_VAR_pingone_client_secret** in the localsecrets file
-- `Environment ID` - This value  will be assigned to **TF_VAR_pingone_client_environment_id** in the localsecrets file
+- `Environment ID` - This value will be assigned to **TF_VAR_pingone_client_environment_id** in the localsecrets file
 
 Information needed from the environment in which the application resides (Environment > Settings > Environment Properties):
 
@@ -71,7 +71,7 @@ Information needed from the group in the Davinci Administrator environment (Dire
 ### AWS S3 Bucket
 
 An AWS S3 bucket for storing Terraform state, and a user with permissions as specified in the Terraform documentation for an S3 backend.
-> Note -The bucket should have folders for **prod**, **qa** and **dev** before your first pipeline attempt.
+> Note - The bucket should have folders for **prod**, **qa** and **dev** before your first pipeline attempt.  These directories should be nested under a folder named **platform-state** to align with the localsecrets settings for the bucket. The use of the parent folder allows the same bucket to be used for storing state for other efforts, such as an application pipeline.
 
 Information needed from the AWS S3 bucket and user:
 
@@ -92,7 +92,7 @@ To be successful in recreating the use cases supported by this pipeline, there a
 - Terraform CLI v1.6+
 - [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 - [gh](https://cli.github.com/) the Github CLI utility
-- Additionally a few command-line tools are recommended for local-development code review:
+- Additionally a few command-line tools are recommended for local development code review:
   - [tflint](https://github.com/terraform-linters/tflint)
   - [dvlint](https://github.com/pingidentity/dvlint)
 
@@ -147,7 +147,7 @@ The minimum required scopes are 'repo', 'read:org', 'workflow'.
 
 #### Github Actions Secrets
 
-The Github pipeline actions will depend on sourcing some secrets as ephemeral environment variables. To prepare the secrets in the repository:
+The Github pipeline actions depend on sourcing some secrets as ephemeral environment variables. To prepare the secrets in the repository:
 
 ```bash
 cp secretstemplate localsecrets
@@ -171,13 +171,13 @@ unset _secrets
 
 The final step before creating new features is to deploy the static environments `prod` and `qa`.
 
-Under the **Actions** section in Github, locate the failed **Initial commit** workflow run from the creation of the repository.  Click "Re-run jobs" and choose "Re-run all jobs". If your secrets are configured correctly, this should result in the successful deployment of a new environment named "prod" in your PingOne account.
+Under the **Actions** section in Github, locate the failed **Initial commit** workflow run from the creation of the repository.  Click "Re-run jobs" and choose "Re-run all jobs". If your secrets are configured correctly, this action should result in the successful deployment of a new environment named "prod" in your PingOne account.
 
 ![re-run all jobs](./img/rerunalljobs.png "Re-run All Jobs")
 
 ![Prod deployed](./img/proddeployed.png "Prod Deployed")
 
-To deploy the `qa` environment, simply create and push a new branch from prod with the name `qa`:
+To deploy the `qa` environment, create and push a new branch from prod with the name `qa`:
 
 ```bash
 git checkout prod
@@ -197,7 +197,7 @@ Now that the repository and pipeline are configured, the general recommended dev
 - [Extract and review new configuration](#extract-and-review-new-configuration)
 - [Commit code for test, review and promotion](#commit-code-for-review-and-promotion)
 
-To experience the developer's perspective, a demo walk through of the steps follows. The demo will revolve around the use case of adding a new OIDC web application configuration into the PingOne production environment.
+To experience the developer's perspective, a demonstration walkthrough of the steps follows. The demonstration will revolve around the use case of adding a new OIDC web application configuration into the PingOne production environment.
 
 ### Launch Feature Development Environment
 
@@ -205,7 +205,9 @@ To experience the developer's perspective, a demo walk through of the steps foll
 
 ![Create a new issue](./img/githubissuerequestapp.png "Create a new issue")
 
-2. Click "Create a branch" and choose "Checkout Locally" for GitHub to create a development branch and PingOne environment on your behalf.
+2. Provide a description and save the issue by clicking the "Submit New Issue" button.
+
+3. Select the issue and click "Create a branch" and choose "Checkout Locally" from the right-hand navigation menu.  This action will cause GitHub to create a development branch and PingOne environment on your behalf.
 
 ![Create a branch](./img/createabranch.png "Create a branch")
 
@@ -226,24 +228,32 @@ To experience the developer's perspective, a demo walk through of the steps foll
 
 After the application creation is "tested" manually, the new configuration must be added to the Terraform configuration. This addition will happen in a few steps, starting with creating and testing the configuration in the `./terraform` folder.
 
-1. Terraform provides a [tool to help generate configuration](https://developer.hashicorp.com/terraform/language/import) for resources built directly in the environment. To leverage this tool as a developer, an import block will be added in a new file: `./terraform/imports.tf`. Create this file now, adding lines similar to the following:
+1. Navigate to the folder containing the platform repository and check out the development branch:
+
+```bash
+git pull
+git checkout <branch-name>
+```
+
+2. Terraform provides a [tool to help generate configuration](https://developer.hashicorp.com/terraform/language/import) for resources built directly in the environment. To leverage this tool as a developer, an import block will be added in a new file: `./terraform/imports.tf`. Create this file now, adding lines similar to the following, replacing environment_id and client_id with the values from the PingOne environment:
 
 ```hcl
 import {
   to = pingone_application.my_awesome_oidc_web_app
-  id = "{environment_id}/{client_id}"
+  id = "<environment_id>/<client_id>"
 }
 ```
 
 > Note: This file is not intended to be committed to Github and is included in **.gitignore**. To understand the values to be provided in the id attribute of any resource, the developer should refer to the corresponding resource documentation on registry.terraform.io.
 
-2. Run the generate command to generate output. In this repo, the generate command is wrapped in the deploy script:
+2. Run the generate command to generate output. In this repository, the generate command is wrapped in the deploy script:
 
 ```bash
+source localsecrets
 ./scripts/local_feature_deploy.sh --generate
 ```
 
-This command will create a file with the generated output at `./terraform/generated-platform.tf`
+Running this command will create a file with the generated output at `./terraform/generated-platform.tf`
 
 However, the command line may also return errors, for example:
 
@@ -254,12 +264,64 @@ Planning failed. Terraform encountered an error while generating this plan.
 │ Error: attribute "oidc_options": attribute "client_id" is required
 ```
 
-Terraform's import feature may frequently return errors due to complications with resource schemas. When this occurs the developer is expected to correct the issue by reading the error.
+Terraform's import feature frequently returns errors due to complications with resource schemas. When such an error occurs, the developer is expected to correct the issue by reading the error, researching the provider, and providing appropriate values in the import block.
 
-3. Review the errors and attempt to correct them then trigger the deploy script, but do not accept the plan. Instead continue to review and adjust the resources until satisfied with the plan. Adjustment may mean correcting errors and removing null attributes. The target configuration is a plan that *only* includes imports.
+3. Review the errors and attempt to correct them in the `generated-platform.tf` file.  As you work, trigger the deploy script by running `./scripts/local_feature_deploy.sh`, but do not accept the plan (type **no** when prompted to continue). Instead, you should continue to review and adjust the resources until you are satisfied with the plan. Adjustment may mean correcting errors and removing null attributes. The target configuration is a plan that *only* includes imports. So, for example, the initial generated configuration may look similar to this example:
+
+```hcl
+# __generated__ by Terraform
+# Please review these resources and move them into your main configuration files.
+
+# __generated__ by Terraform
+resource "pingone_application" "my_awesome_oidc_web_app" {
+  access_control_group_options = null
+  access_control_role_type     = null
+  description                  = null
+  enabled                      = true
+  environment_id               = "<redacted-environment-id>"
+  external_link_options        = null
+  hidden_from_app_portal       = false
+  icon                         = null
+  login_page_url               = null
+  name                         = "my-awesome-oidc-web-app"
+  oidc_options = {
+    additional_refresh_token_replay_protection_enabled = true
+    allow_wildcard_in_redirect_uris                    = null
+    certificate_based_authentication                   = null
+    cors_settings                                      = null
+    device_custom_verification_uri                     = null
+    device_path_id                                     = null
+    device_polling_interval                            = 5
+    device_timeout                                     = 600
+    grant_types                                        = ["AUTHORIZATION_CODE"]
+    home_page_url                                      = null
+    initiate_login_uri                                 = null
+    jwks                                               = null
+    jwks_url                                           = null
+    mobile_app                                         = null
+    par_requirement                                    = "OPTIONAL"
+    par_timeout                                        = 60
+    pkce_enforcement                                   = "OPTIONAL"
+    post_logout_redirect_uris                          = null
+    redirect_uris                                      = null
+    refresh_token_duration                             = null
+    refresh_token_rolling_duration                     = null
+    refresh_token_rolling_grace_period_duration        = null
+    require_signed_request_object                      = null
+    response_types                                     = ["CODE"]
+    support_unsigned_request_object                    = null
+    target_link_uri                                    = null
+    token_endpoint_auth_method                         = "CLIENT_SECRET_BASIC"
+    type                                               = "WEB_APP"
+  }
+  saml_options = null
+  tags         = null
+}
+```
 
 After removing the null value attributes, the following configuration is left:
-```
+
+```hcl
 resource "pingone_application" "my_awesome_oidc_web_app" {
   environment_id               = "<redacted-environment-id>"
   name                         = "my awesome oidc web app"
@@ -281,7 +343,7 @@ resource "pingone_application" "my_awesome_oidc_web_app" {
 And the deploy script shows an acceptable import and change:
 
 ```bash
-./scripts/local_feature_deploy.sh   
+./scripts/local_feature_deploy.sh
 
 Initializing the backend...
 Initializing modules...
@@ -339,12 +401,26 @@ Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
 
 Outputs:
 
-pingone_environment_id = "6a7e4eb9-bba0-434d-9a7b-c66f61f84ad7"
+pingone_environment_id = "<your environment id>"
 ```
 
-5. **Move** the new, generated configuration out of the generated-platform.tf file and into the base module at the bottom of `/terraform/pingone_platform.tf`. Then update the **environment_id** attribute to reference the environment created by Terraform: `pingone_environment.target_environment.id`.
+5. **Move** the new, generated configuration out of the generated-platform.tf file and into the base module at the bottom of `/terraform/pingone_platform.tf`. 
 
-6. Delete terraform/imports.tf and generated-platform.tf as they are no longer needed. Another run of the deploy script should show no changes needed.
+6. To do this move, copy the resource block from the generated-platform.tf file and paste it into the pingone_platform.tf file.
+
+7. After pasting, modify the **environment_id** attribute to reference the environment created by Terraform: `pingone_environment.target_environment.id` rather than the hardcoded value. This change will allow the configuration to be deployed to any environment created by the pipeline.
+
+```hcl
+  environment_id               = "<redacted-environment-id>"
+```
+
+becomes
+
+```hcl
+  environment_id               = pingone_environment.target_environment.id
+```
+
+8. Delete the terraform/imports.tf and terraform/generated-platform.tf files as they are no longer needed. Another run of the deploy script should show no changes needed.
 
 ### Commit Code for Review and Promotion
 
@@ -364,7 +440,7 @@ Changes not staged for commit:
 no changes added to commit (use "git add" and/or "git commit -a")
 ```
 
-10. Before committing and pushing changes to GitHub, it is important to run the local development validations to ensure the proposed configuration meets the defined standards. In this case, those validates are called via `make devcheck`:
+2. Before committing and pushing changes to GitHub, it is important to run the local development validations to ensure the proposed configuration meets the defined standards. In this case, the validation is performed by calling `make devcheck`:
 
 ```bash
 make devcheck
@@ -379,18 +455,18 @@ Success! The configuration is valid.
 2024-04-10T00:34:13.544-0600    INFO    Detected config files: 7
 ```
 
-11. Now that the configuration is completely ready, perform the typical file management cycle: *git add*, *git commit*, and *git push* the changes to GitHub. This push to GitHub will trigger the "Feature Deploy Push" action. However, if you inspect the `Deploy` step, there should be no change needed because your local environment is using the same remote backend terraform state as the pipeline, so the pushed change to the feature branch matches what was created by running the local deploy script.
+3. Now that the configuration is completely ready, perform the typical file management cycle: *git add*, *git commit*, and *git push* the changes to GitHub. This push to GitHub will trigger the "Feature Deploy Push" action. However, if you inspect the `Deploy` step, there should be no change needed because your local environment is using the same remote backend terraform state as the pipeline, so the pushed change to the feature branch matches what was created by running the local deploy script. The import process was used to bring the manually-created changes under the control of Terraform, and the validation process was to ensure the configuration was correct.
 
 ![No changes output](./img/nochangesrequired.png "No changes output")
 
 > Note - From this point forward, the configuration deployment should not include any more manual changes in the UI of higher environments. PingOne Administrators or Developers may have access to the UI, but it should be for reviewing, not making, changes.
 
-12. Open a Pull request for the feature branch to be merged into the **qa** branch. This pull request will trigger an action that runs validations similar to what occured in `make devcheck` as well as an important `terraform plan` command. The result of the terraform plan is what the reviewer of the pull request should focus on. In this case, the plan should show one new resource would be created if the pull request is merged.
+4. Open a Pull request for the feature branch to be merged into the **qa** branch. This pull request will trigger an action that runs validations similar to what occured in `make devcheck` as well as an important `terraform plan` command. The result of the terraform plan is what the reviewer of the pull request should focus on. In this case, the plan should show one new resource would be created if the pull request is merged.
 
 ![Open pull request](./img/openpullrequest.png "Open pull request")
 
-13. When satisfied with the code review, merge the pull request into the **qa** branch. This merge triggers an action that will deploy the new change.
+5. When satisfied with the code review, merge the pull request into the **qa** branch. This merge triggers an action that will deploy the new change.
 
-14. Finally, to get the feature into the production environment, the same pull request, review, and merge process will occur. The only difference in this situation is merging the **qa** branch into the **prod** branch.
+6. Finally, to get the feature into the production environment, the same pull request, review, and merge process will occur. The only difference in this situation is merging the **qa** branch into the **prod** branch.
 
 15. After the merge to prod finishes and is the issue is considered complete, the GitHub isssue can be closed and the development branch can be deleted. When the development branch is deleted, a GitHub Action will be triggered to delete the corresponding PingOne Environment leaving only the **qa** and **prod** environments relevant to this example.
