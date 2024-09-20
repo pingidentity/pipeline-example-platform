@@ -33,8 +33,4 @@ jobs:
           -backend-config="bucket=$TF_VAR_tf_state_bucket" \
           -backend-config="region=$TF_VAR_tf_state_region" \
           -backend-config="key=${TF_VAR_tf_state_key_prefix}/dev/${TF_VAR_pingone_environment_name}/terraform.tfstate"
-        terraform -chdir=${_tfdir} destroy \
-          -backend-config="bucket=$TF_VAR_tf_state_bucket" \
-          -backend-config="region=$TF_VAR_tf_state_region" \
-          -backend-config="key=${TF_VAR_tf_state_key_prefix}/dev/${TF_VAR_pingone_environment_name}/terraform.tfstate" \
-          --auto-approve
+        terraform -chdir=${_tfdir} destroy --auto-approve
