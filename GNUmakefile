@@ -24,7 +24,7 @@ validate:
 trivy:
 	@echo "==> Checking Terraform code with trivy..."
 	@command -v trivy >/dev/null 2>&1 || { echo >&2 "'trivy' is required but not installed. Aborting."; exit 1; }
-	@trivy config ./
+        @TF_VAR_pingone_environment_name=$(git rev-parse --abbrev-ref HEAD) trivy config ./
 
 devcheck: fmt fmt-check validate tflint trivy
 
