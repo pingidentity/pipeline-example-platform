@@ -470,4 +470,30 @@ Success! The configuration is valid.
 
 6. Finally, to get the feature into the production environment, the same pull request, review, and merge process will occur. The only difference in this situation is merging the **qa** branch into the **prod** branch.
 
-15. After the merge to prod finishes and is the issue is considered complete, the GitHub isssue can be closed and the development branch can be deleted. When the development branch is deleted, a GitHub Action will be triggered to delete the corresponding PingOne Environment leaving only the **qa** and **prod** environments relevant to this example.
+7. After the merge to prod finishes and is the issue is considered complete, the GitHub issue can be closed and the development branch can be deleted. When the development branch is deleted, a GitHub Action will be triggered to delete the corresponding PingOne Environment leaving only the **qa** and **prod** environments relevant to this example.
+
+## Cleanup Instructions
+
+After practicing with this example repository, you may wish to completely remove the environments it creates and manages from your PingOne account. In testing this guide, a potential problem with permissions was identified.  The following steps will guide you through the process of removing the environments safely until an automated solution is available.
+
+### Delete the Github Repository
+
+You can do this step at any time, or not at all.  Deleting the repository will not affect the environments created in PingOne, but will leave them in an unmanaged state (no Terraform control).  The same goes for your local copy of the repository.
+
+### Remove the PingOne Environments
+
+The environments created by the pipeline can be removed by following these steps:
+
+1. Log in to your PingOne account, select the Davinci Administrator environment, and click **Manage Environment**.
+2. Navigate to **Directory** > **Groups**, and select the **Davinci Administrators** group.
+3. Select the **Roles** tab and click the **Grant Roles** button.
+4. Expand the **DaVinci Admin** role and deselect the pipeline-provisioned environments you wish to delete from the role.  In this case, you will remove **prod** and **qa** (**qa** will be present unless you removed the **qa** branch from the Github repository beforehand).
+5. Click **Save** to remove the environments from the role.
+6. Return to the home page in PingOne and click the three dots at the right of the environment you wish to delete to select **Delete**.  If you converted the environment to **Production** rather than the default **Sandbox** type, you will need to convert it back to **Sandbox** before you can delete it.
+7. Navigate to your S3 bucket where the state files are stored and delete them.  This step is optional, but it is a best practice to remove Terraform state files when no longer needed.
+
+#### Background on the Issue
+
+The potential issue stems from the environments to which the Davinci Admin role is attached.  As new environments are created, they are added to this list.  The pipeline handles the removal of permissions to a development environment during the pruning process when a branch is deleted.  However, the **prod** environment cannot be removed from the Github repository, leaving no automated way at this time to remove the environment from PingOne.
+
+In some cases, it was observed that deleting the environments directly in PingOne resulted in an ambiguous state for the Davinci Admin role, leaving the Davinci Administrator unable to login or manage environments.  Removing the environments to be deleted from the role beforehand prevents this possible issue from occurring.
