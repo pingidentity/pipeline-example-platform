@@ -323,6 +323,7 @@ After removing the null value attributes, the following configuration is left:
 
 ```hcl
 resource "pingone_application" "my_awesome_oidc_web_app" {
+  enabled                      = true
   environment_id               = "<redacted-environment-id>"
   name                         = "my awesome oidc web app"
   oidc_options = {
