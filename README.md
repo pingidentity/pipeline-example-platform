@@ -266,7 +266,7 @@ Planning failed. Terraform encountered an error while generating this plan.
 
 Terraform's import feature frequently returns errors due to complications with resource schemas. When such an error occurs, the developer is expected to correct the issue by reading the error, researching the provider, and providing appropriate values in the import block.
 
-3. Review the errors and attempt to correct them in the `generated-platform.tf` file.  As you work, trigger the deploy script by running `./scripts/local_feature_deploy.sh`, but do not accept the plan (type **no** when prompted to continue). Instead, you should continue to review and adjust the resources until you are satisfied with the plan. Adjustment may mean correcting errors and removing null attributes. The target configuration is a plan that *only* includes imports. So, for example, the initial generated configuration may look similar to this example:
+3. Review the errors and attempt to correct them in the `generated-platform.tf` file.  As you work, trigger the deploy script by running `./scripts/local_feature_deploy.sh`, but do not accept the plan (type **no** when prompted to continue). Instead, you should continue to review and adjust the resources until you are satisfied with the plan. Adjustment may mean correcting errors and removing null attributes. The target configuration is a plan that *only* includes imports. For example, the initial generated configuration may look similar to the following:
 
 ```hcl
 # __generated__ by Terraform
@@ -325,6 +325,7 @@ After removing the null value attributes, the following configuration is left:
 resource "pingone_application" "my_awesome_oidc_web_app" {
   enabled                      = true
   environment_id               = "<redacted-environment-id>"
+  hidden_from_app_portal       = false
   name                         = "my awesome oidc web app"
   oidc_options = {
     additional_refresh_token_replay_protection_enabled = true
