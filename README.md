@@ -408,7 +408,7 @@ pingone_environment_id = "<your environment id>"
 
 5. **Move** the new, generated configuration out of the generated-platform.tf file and into the base module at the bottom of `/terraform/pingone_platform.tf`. 
 
-6. To do this move, copy the resource block from the generated-platform.tf file and paste it into the pingone_platform.tf file.
+6. To do this move, copy the resource block from the generated-platform.tf file and paste it into the pingone_platform.tf file. Typically, this will be placed above the `output` block at the bottom of the file.
 
 7. After pasting, modify the **environment_id** attribute to reference the environment created by Terraform: `pingone_environment.target_environment.id` rather than the hardcoded value. This change will allow the configuration to be deployed to any environment created by the pipeline.
 
