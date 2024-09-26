@@ -475,7 +475,7 @@ Success! The configuration is valid.
 
 ## Cleanup Instructions
 
-After practicing with this example repository, you may wish to completely remove the environments it creates and manages from your PingOne account. In testing this guide, a potential problem with permissions was identified.  The following steps will guide you through the process of removing the environments safely until an automated solution is available.
+After practicing with this example repository, you may wish to completely remove the environments it creates and manages from your PingOne account. To avoid scenarios of leftover, unmanaged permissions, the following steps will guide you through the process of *safely* removing the environments until an automated solution is available.
 
 ### Delete the Github Repository
 
