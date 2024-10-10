@@ -266,7 +266,7 @@ Planning failed. Terraform encountered an error while generating this plan.
 
 Terraform's import feature frequently returns errors due to complications with resource schemas. When such an error occurs, the developer is expected to correct the issue by reading the error, researching the provider, and providing appropriate values in the import block.
 
-3. Review the errors and attempt to correct them in the `generated-platform.tf` file.  As you work, trigger the deploy script by running `./scripts/local_feature_deploy.sh`, but do not accept the plan (type **no** when prompted to continue). Instead, you should continue to review and adjust the resources until you are satisfied with the plan. Adjustment may mean correcting errors and removing null attributes. The target configuration is a plan that *only* includes imports. So, for example, the initial generated configuration may look similar to this example:
+3. Review the errors and attempt to correct them in the `generated-platform.tf` file.  As you work, trigger the deploy script by running `./scripts/local_feature_deploy.sh`, but do not accept the plan (type **no** when prompted to continue). Instead, you should continue to review and adjust the resources until you are satisfied with the plan. Adjustment may mean correcting errors and removing null attributes. The target configuration is a plan that *only* includes imports. For example, the initial generated configuration may look similar to the following:
 
 ```hcl
 # __generated__ by Terraform
@@ -325,6 +325,7 @@ After removing the null value attributes, the following configuration is left:
 resource "pingone_application" "my_awesome_oidc_web_app" {
   enabled                      = true
   environment_id               = "<redacted-environment-id>"
+  hidden_from_app_portal       = false
   name                         = "my awesome oidc web app"
   oidc_options = {
     additional_refresh_token_replay_protection_enabled = true
@@ -407,7 +408,7 @@ pingone_environment_id = "<your environment id>"
 
 5. **Move** the new, generated configuration out of the generated-platform.tf file and into the base module at the bottom of `/terraform/pingone_platform.tf`. 
 
-6. To do this move, copy the resource block from the generated-platform.tf file and paste it into the pingone_platform.tf file.
+6. To do this move, copy the resource block from the generated-platform.tf file and paste it into the pingone_platform.tf file. Typically, this will be placed above the `output` block at the bottom of the file.
 
 7. After pasting, modify the **environment_id** attribute to reference the environment created by Terraform: `pingone_environment.target_environment.id` rather than the hardcoded value. This change will allow the configuration to be deployed to any environment created by the pipeline.
 
@@ -470,4 +471,30 @@ Success! The configuration is valid.
 
 6. Finally, to get the feature into the production environment, the same pull request, review, and merge process will occur. The only difference in this situation is merging the **qa** branch into the **prod** branch.
 
-15. After the merge to prod finishes and is the issue is considered complete, the GitHub isssue can be closed and the development branch can be deleted. When the development branch is deleted, a GitHub Action will be triggered to delete the corresponding PingOne Environment leaving only the **qa** and **prod** environments relevant to this example.
+7. After the merge to prod finishes and is the issue is considered complete, the GitHub issue can be closed and the development branch can be deleted. When the development branch is deleted, a GitHub Action will be triggered to delete the corresponding PingOne Environment leaving only the **qa** and **prod** environments relevant to this example.
+
+## Cleanup Instructions
+
+After practicing with this example repository, you may wish to completely remove the environments it creates and manages from your PingOne account. To avoid scenarios of leftover, unmanaged permissions, the following steps will guide you through the process of *safely* removing the environments until an automated solution is available.
+
+### Delete the Github Repository
+
+You can do this step at any time, or not at all.  Deleting the repository will not affect the environments created in PingOne, but will leave them in an unmanaged state (no Terraform control).  The same goes for your local copy of the repository.
+
+### Remove the PingOne Environments
+
+The environments created by the pipeline can be removed by following these steps:
+
+1. Log in to your PingOne account, select the Davinci Administrator environment, and click **Manage Environment**.
+2. Navigate to **Directory** > **Groups**, and select the **Davinci Administrators** group.
+3. Select the **Roles** tab and click the **Grant Roles** button.
+4. Expand the **DaVinci Admin** role and deselect the pipeline-provisioned environments you wish to delete from the role.  In this case, you will remove **prod** and **qa** (**qa** will be present unless you removed the **qa** branch from the Github repository beforehand).
+5. Click **Save** to remove the environments from the role.
+6. Return to the home page in PingOne and click the three dots at the right of the environment you wish to delete to select **Delete**.  If you converted the environment to **Production** rather than the default **Sandbox** type, you will need to convert it back to **Sandbox** before you can delete it.
+7. Navigate to your S3 bucket where the state files are stored and delete them.  This step is optional, but it is a best practice to remove Terraform state files when no longer needed.
+
+#### Background on the Issue
+
+The potential issue stems from the environments to which the Davinci Admin role is attached.  As new environments are created, they are added to this list.  The pipeline handles the removal of permissions to a development environment during the pruning process when a branch is deleted.  However, the **prod** environment cannot be removed from the Github repository, leaving no automated way at this time to remove the environment from PingOne.
+
+In some cases, it was observed that deleting the environments directly in PingOne resulted in an ambiguous state for the Davinci Admin role, leaving the Davinci Administrator unable to login or manage environments.  Removing the environments to be deleted from the role beforehand prevents this possible issue from occurring.
