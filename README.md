@@ -155,17 +155,16 @@ cp secretstemplate localsecrets
 
 Fill in `localsecrets` accordingly.
 
-> Note, `secretstemplate` is intended to be a template file, `localsecrets` is a file that contains credentials but is part of .gitignore and should never be committed into the repository.
+> [!CAUTION]
+> `secretstemplate` is a template file while `localsecrets` contains credentials. `localsecrets` is part of *.gitignore* and should never be committed into the repository. **`secretstemplate`** is committed to the repository, so ensure that you do not edit it directly or you risk exposing your secrets.
 
 Run the following to upload localsecrets to Github:
 
 ```bash
-_secrets="$(base64 -i localsecrets)"
+_secrets="$(/usr/bin/base64 -i localsecrets)"
 gh secret set --app actions TERRAFORM_ENV_BASE64 --body $_secrets
 unset _secrets
 ```
-
-> Note - On a Mac, if you have installed the **base64** application using brew, there will be a file content failure in the pipeline stemming from the first command shown above.  Use the default version of base64 by specifying the path explicitly: `_secrets="$(/usr/bin/base64 -i localsecrets)"`
 
 ### Deploy Prod and QA
 
