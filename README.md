@@ -71,7 +71,9 @@ Information needed from the group in the Davinci Administrator environment (Dire
 ### AWS S3 Bucket
 
 An AWS S3 bucket for storing Terraform state, and a user with permissions as specified in the Terraform documentation for an S3 backend.
-> Note - The bucket should have folders for **prod**, **qa** and **dev** before your first pipeline attempt.  These directories should be nested under a folder named **platform-state** to align with the localsecrets settings for the bucket. The use of the parent folder allows the same bucket to be used for storing state for other efforts, such as an application pipeline.
+
+> [!TIP]
+> The bucket should have folders for **prod**, **qa** and **dev** before your first pipeline attempt.  These directories should be nested under a folder named **platform-state** to align with the localsecrets settings for the bucket. The use of the parent folder allows the same bucket to be used for storing state for other efforts, such as an application pipeline.
 
 Information needed from the AWS S3 bucket and user:
 
@@ -86,7 +88,8 @@ To be successful in recreating the use cases supported by this pipeline, there a
 
 - A [PingOne trial](https://docs.pingidentity.com/r/en-us/pingone/p1_start_a_pingone_trial) or paid account configured according to the [PingOne Terraform access](https://terraform.pingidentity.com/getting-started/pingone/) and [DaVinci Terraform](https://terraform.pingidentity.com/getting-started/davinci/) access guidelines.
 
-> Note - For PingOne, meeting these requirements means you should have credentials for a worker app residing in the "Administrators" environment that has organization-level scoped roles. For DaVinci, you should have credentials for a user in a non-"Administrators" environment that is part of a group specifically intended to be used by command-line tools or APIs with environment-level scoped roles. This demonstration will add roles to the DaVinci command-line group and will fail if roles are not scoped properly.
+> [!IMPORTANT]
+> For PingOne, meeting these requirements means you should have credentials for a worker app residing in the "Administrators" environment that has organization-level scoped roles. For DaVinci, you should have credentials for a user in a non-"Administrators" environment that is part of a group specifically intended to be used by command-line tools or APIs with environment-level scoped roles. This demonstration will add roles to the DaVinci command-line group and will fail if roles are not scoped properly.
 
 - An [AWS trial](https://aws.amazon.com/free/?all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=*all&awsf.Free%20Tier%20Categories=*all) or paid account
 - Terraform CLI v1.6+
@@ -100,7 +103,8 @@ To be successful in recreating the use cases supported by this pipeline, there a
 
 Click the **Use this template** button at the top right of this page to create your own repository.  After the repository is created, clone it to your local machine to continue.  The rest of this guide will assume you are working from the root of the cloned repository.
 
-> Note - A pipeline will run and fail when the repository is created. This result is expected as the pipeline is attempting to deploy and the necessary configuration has not been performed.
+> [!NOTE]
+> A pipeline will run and fail when the repository is created. This result is expected as the pipeline is attempting to deploy and the necessary configuration has not yet been completed.
 
 ## Development Lifecycle Diagram
 
@@ -200,7 +204,7 @@ To experience the developer's perspective, a demonstration walkthrough of the st
 
 ### Launch Feature Development Environment
 
-1. Create a GitHub Issue for a new feature request via the UI. GitHub Issue Templates help ensure the requestor provides appropriate information on the issue. Note: The GitHub issue name will be used to create the PingOne environment.
+1. Create a GitHub Issue for a new feature request via the UI. GitHub Issue Templates help ensure the requestor provides appropriate information on the issue. The GitHub issue name will be used to create the PingOne environment.
 
 ![Create a new issue](./img/githubissuerequestapp.png "Create a new issue")
 
@@ -243,7 +247,8 @@ import {
 }
 ```
 
-> Note: This file is not intended to be committed to Github and is included in **.gitignore**. To understand the values to be provided in the id attribute of any resource, the developer should refer to the corresponding resource documentation on registry.terraform.io.
+> [!CAUTION]
+> This file is not intended to be committed to Github and is included in **.gitignore**. To understand the values to be provided in the id attribute of any resource, the developer should refer to the corresponding resource documentation on registry.terraform.io.
 
 2. Run the generate command to generate output. In this repository, the generate command is wrapped in the deploy script:
 
@@ -460,7 +465,8 @@ Success! The configuration is valid.
 
 ![No changes output](./img/nochangesrequired.png "No changes output")
 
-> Note - From this point forward, the configuration deployment should not include any more manual changes in the UI of higher environments. PingOne Administrators or Developers may have access to the UI, but it should be for reviewing, not making, changes.
+> [!NOTE]
+> From this point forward, the configuration deployment should not include any more manual changes in the UI of higher environments. PingOne Administrators or Developers may have access to the UI, but it should be for reviewing, not making, changes.
 
 4. Open a Pull request for the feature branch to be merged into the **qa** branch. This pull request will trigger an action that runs validations similar to what occured in `make devcheck` as well as an important `terraform plan` command. The result of the terraform plan is what the reviewer of the pull request should focus on. In this case, the plan should show one new resource would be created if the pull request is merged.
 
@@ -496,4 +502,4 @@ The environments created by the pipeline can be removed by following these steps
 
 The potential issue stems from the environments to which the Davinci Admin role is attached.  As new environments are created, they are added to this list.  The pipeline handles the removal of permissions to a development environment during the pruning process when a branch is deleted.  However, the **prod** environment cannot be removed from the Github repository, leaving no automated way at this time to remove the environment from PingOne.
 
-In some cases, it was observed that deleting the environments directly in PingOne resulted in an ambiguous state for the Davinci Admin role, leaving the Davinci Administrator unable to login or manage environments.  Removing the environments to be deleted from the role beforehand prevents this possible issue from occurring.
+In some cases, it was observed that deleting the environments directly in PingOne resulted in an ambiguous state for the Davinci Admin role, leaving the Davinci Administrator unable to login or manage environments.  Removing the environments to be deleted from the role beforehand should prevent this possibility.
