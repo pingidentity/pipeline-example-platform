@@ -9,7 +9,7 @@ jobs:
     env:
       TERRAFORM_ENV_BASE64: ${{ secrets.TERRAFORM_ENV_BASE64 }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: fmt-check
       run: |
         terraform fmt -recursive -check .
@@ -20,7 +20,7 @@ jobs:
     env:
       TERRAFORM_ENV_BASE64: ${{ secrets.TERRAFORM_ENV_BASE64 }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - uses: terraform-linters/setup-tflint@v4
       name: Setup TFLint
@@ -41,7 +41,7 @@ jobs:
       TERRAFORM_ENV_BASE64: ${{ secrets.TERRAFORM_ENV_BASE64 }}
     steps:
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - uses: hashicorp/setup-terraform@v3
     - run: |-
         echo $TERRAFORM_ENV_BASE64 | base64 -d > tfvars
@@ -77,7 +77,7 @@ jobs:
       TERRAFORM_ENV_BASE64: ${{ secrets.TERRAFORM_ENV_BASE64 }}
     steps:
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - uses: hashicorp/setup-terraform@v3
     - run: |-
         echo $TERRAFORM_ENV_BASE64 | base64 -d > tfvars
