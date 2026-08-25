@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 # Copyright © 2026 Ping Identity Corporation
 
+set -eu
+
 ### this script is used to run terraform apply for your local feature branch only. ###
 
 test -f scripts/lib.sh || {
@@ -8,6 +10,7 @@ test -f scripts/lib.sh || {
   exit 1
 }
 _command="apply"
+_generate=false
 
 usage ()
 {
@@ -34,12 +37,12 @@ exit_usage()
     exit 1
 }
 
-while ! test -z ${1} ; do
+while [ "$#" -gt 0 ]; do
   case "${1}" in
     -d|--destroy)
       _command="destroy" ;;
     -g|--generate)
-      _command="plan -generate-config-out=generated-platform.tf" ;;
+      _generate=true ;;
     -v|--verbose)
       set -x ;;
     -h|--help)
@@ -75,7 +78,7 @@ _region="${TF_VAR_tf_state_region}"
 _key="${TF_VAR_tf_state_key_prefix}/dev/${_branch}/terraform.tfstate"
 
 ## terraform init
-terraform -chdir="${TFDIR}" init -migrate-state \
+terraform -chdir="${TFDIR}" init -input=false -migrate-state \
   -backend-config="bucket=${_bucket_name}" \
   -backend-config="region=${_region}" \
   -backend-config="key=${_key}"
@@ -86,5 +89,9 @@ echo "Running terraform apply for branch: ${_branch}, You will be prompted to en
 
 export TF_VAR_pingone_environment_name="${_branch}"
 
-terraform -chdir="${TFDIR}" ${_command}
+if [ "${_generate}" = true ]; then
+  terraform -chdir="${TFDIR}" plan -generate-config-out=generated-platform.tf
+else
+  terraform -chdir="${TFDIR}" "${_command}"
+fi
 

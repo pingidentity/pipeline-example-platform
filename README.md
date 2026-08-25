@@ -55,8 +55,8 @@ An environment with the following characteristics:
 
 Information needed from the user in the Davinci Administrator environment (Directory > Users > <user_name>):
 
-- `Username` - This value will be assigned to **TF_VAR_pingone_davinci_admin_username** in the localsecrets file
-- `Password` - This value will be assigned to **TF_VAR_pingone_davinci_admin_password** in the localsecrets file.  This password is created when you create and confirm the user.
+- `Username` - This value will be assigned to **TF_VAR_pingone_davinci_admin_username** in the localsecrets file. Treat it as sensitive and never commit or print it.
+- `Password` - This value will be assigned to **TF_VAR_pingone_davinci_admin_password** in the localsecrets file. This is sensitive and must never be committed or printed.
 
 Information needed from the environment in which the application resides (Environment > Settings > Environment Properties):
 
@@ -468,7 +468,7 @@ Success! The configuration is valid.
 > [!NOTE]
 > From this point forward, the configuration deployment should not include any more manual changes in the UI of higher environments. PingOne Administrators or Developers may have access to the UI, but it should be for reviewing, not making, changes.
 
-4. Open a Pull request for the feature branch to be merged into the **qa** branch. This pull request will trigger an action that runs validations similar to what occured in `make devcheck` as well as an important `terraform plan` command. The result of the terraform plan is what the reviewer of the pull request should focus on. In this case, the plan should show one new resource would be created if the pull request is merged.
+4. Open a Pull request for the feature branch to be merged into the **qa** branch. Internal pull requests targeting **qa** or **prod** run validation and a Terraform plan; fork pull requests are intentionally skipped because this workflow uses repository credentials. The plan is noninteractive and is the review focus. The push workflow remains the deployment path and auto-applies approved branch pushes.
 
 ![Open pull request](./img/openpullrequest.png "Open pull request")
 
@@ -480,7 +480,7 @@ Success! The configuration is valid.
 
 ## Cleanup Instructions
 
-After practicing with this example repository, you may wish to completely remove the environments it creates and manages from your PingOne account. To avoid scenarios of leftover, unmanaged permissions, the following steps will guide you through the process of *safely* removing the environments until an automated solution is available.
+After practicing with this example repository, you may wish to completely remove the environments it creates and manages from your PingOne account. Feature branches are cleaned up automatically when deleted, subject to the protected-branch safeguards in `.github/workflows/prune.yml`. The following steps cover the remaining static environments and any manual cleanup.
 
 ### Delete the Github Repository
 

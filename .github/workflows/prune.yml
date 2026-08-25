@@ -1,36 +1,47 @@
 name: Delete Feature Environment
 
-on: 
+on:
   delete:
-    branches-ignore:
-      - 'qa'
-      - 'prod'
+
+permissions:
+  contents: read
 
 jobs:
   prune:
-    if: ${{ !startsWith(github.event.ref, 'qa') || !startsWith(github.event.ref, 'prod')}}
+    if: ${{ github.event.ref_type == 'branch' && github.event.ref != 'qa' && github.event.ref != 'prod' && github.event.ref != '' }}
     name: Destroy Feature Environment
+    concurrency:
+      group: terraform-prune-${{ github.event.ref }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
       TERRAFORM_ENV_BASE64: ${{ secrets.TERRAFORM_ENV_BASE64 }}
+      DELETED_BRANCH: ${{ github.event.ref }}
     steps:
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
-    - uses: hashicorp/setup-terraform@v3
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
       with:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
     - run: |-
+        set -eu
         _tfdir=terraform
-        echo $TERRAFORM_ENV_BASE64 | base64 -d > tfvars
-        source tfvars
-        echo "base: ${GITHUB_BASE_REF}"
-        echo "ref: ${{ github.event.ref }}"
-        _ref=$(echo "${{ github.event.ref }}" | sed -e "s#refs/heads/##g")
-        export TF_VAR_pingone_environment_name="$(echo "${_ref}" | sed -e "s#refs/heads/##g")"
-        terraform -chdir=${_tfdir} init \
-          -backend-config="bucket=$TF_VAR_tf_state_bucket" \
-          -backend-config="region=$TF_VAR_tf_state_region" \
+        case "${DELETED_BRANCH}" in
+          ''|qa|prod|*[!A-Za-z0-9._/-]*)
+            echo "ERROR: refusing to destroy invalid or protected branch ref: ${DELETED_BRANCH}" >&2
+            exit 1
+            ;;
+        esac
+        umask 077
+        _secrets_file=$(mktemp)
+        trap 'rm -f "${_secrets_file}"' EXIT
+        printf '%s' "${TERRAFORM_ENV_BASE64}" | base64 -d > "${_secrets_file}"
+        . "${_secrets_file}"
+        export TF_VAR_pingone_environment_name="${DELETED_BRANCH}"
+        terraform -chdir="${_tfdir}" init -input=false \
+          -backend-config="bucket=${TF_VAR_tf_state_bucket}" \
+          -backend-config="region=${TF_VAR_tf_state_region}" \
           -backend-config="key=${TF_VAR_tf_state_key_prefix}/dev/${TF_VAR_pingone_environment_name}/terraform.tfstate"
-        terraform -chdir=${_tfdir} destroy --auto-approve
+        terraform -chdir="${_tfdir}" destroy --auto-approve -input=false
