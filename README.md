@@ -210,7 +210,7 @@ To experience the developer's perspective, a demonstration walkthrough of the st
 
 2. Provide a description and save the issue by clicking the "Submit New Issue" button.
 
-3. Select the issue and click "Create a branch" and choose "Checkout Locally" from the right-hand navigation menu.  This action will cause GitHub to create a development branch and PingOne environment on your behalf.
+3. Select the issue and click "Create a branch" and choose "Checkout Locally" from the right-hand navigation menu. This creates a development branch and triggers the deployment workflow for that branch. The workflow intentionally handles `create` events without path filters; only non-`qa`/non-`prod` branches deploy. Tag, `qa`, and `prod` creation events are skipped. Subsequent pushes retain the existing path filters and `[skip ci]` behavior. Create events have no commit message, so `[skip ci]` does not suppress the initial branch-creation deployment.
 
 ![Create a branch](./img/createabranch.png "Create a branch")
 

@@ -12,6 +12,15 @@ test "$(printf '%s\n' "${devcheck}" | grep -c 'trivy config')" -eq 1
 ! grep -R -n -E '@master|tflint_version:[[:space:]]*latest' .github/workflows
 ! grep -R -n -E 'terraform -chdir=.* (init|plan|apply|destroy)( |$)' .github/workflows | grep -v -- '-input=false'
 
+grep -q '^  create:$' .github/workflows/push.yml
+grep -Fq -- "- 'terraform/**'" .github/workflows/push.yml
+grep -Fq -- "- 'scripts/**'" .github/workflows/push.yml
+grep -Fq "github.event_name == 'create'" .github/workflows/push.yml
+test "$(grep -Fc "github.event.ref != 'qa'" .github/workflows/push.yml)" -ge 4
+test "$(grep -Fc "github.event.ref != 'prod'" .github/workflows/push.yml)" -ge 4
+grep -q "github.event.head_commit.message || ''" .github/workflows/push.yml
+grep -q 'EVENT_REF:.*github.event.ref || github.ref' .github/workflows/push.yml
+grep -q '_branch="${_event_ref#refs/heads/}"' .github/workflows/push.yml
 grep -q 'github.ref_type == '\''branch'\''' .github/workflows/push.yml
 grep -q 'github.event.ref_type == '\''branch'\''' .github/workflows/prune.yml
 grep -q 'permissions:' .github/workflows/push.yml
