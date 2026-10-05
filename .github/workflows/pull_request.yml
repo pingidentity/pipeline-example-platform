@@ -34,7 +34,7 @@ jobs:
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-    - uses: terraform-linters/setup-tflint@8093687ecc9dcbfa88d07c103ad4176739a7287e # v4.1.0
+    - uses: terraform-linters/setup-tflint@6ffdbaa3be476b3431f7275c26966ef32ff60337 # v6.3.2
       name: Setup TFLint
       with:
         tflint_version: v0.64.0
