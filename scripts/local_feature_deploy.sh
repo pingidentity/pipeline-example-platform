@@ -78,10 +78,27 @@ _region="${TF_VAR_tf_state_region}"
 _key="${TF_VAR_tf_state_key_prefix}/dev/${_branch}/terraform.tfstate"
 
 ## terraform init
-terraform -chdir="${TFDIR}" init -input=false -migrate-state \
+# -reconfigure (not -migrate-state): each branch has its own state key, and a
+# new branch starts with empty state rather than inheriting the previously
+# initialized branch's state. Migration would also prompt interactively,
+# which -input=false forbids.
+terraform -chdir="${TFDIR}" init -input=false -reconfigure \
   -backend-config="bucket=${_bucket_name}" \
   -backend-config="region=${_region}" \
   -backend-config="key=${_key}"
+
+# Resolve the branch environment's ID from the branch Terraform state (falls
+# back to the admin environment from localsecrets when the state has no
+# output yet, e.g. before the first deploy).
+_branch_environment_id=$(terraform -chdir="${TFDIR}" output -raw pingone_environment_id 2>/dev/null || true)
+case "${_branch_environment_id}" in
+  [0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]-*) ;;
+  *) _branch_environment_id="${TF_VAR_pingone_client_environment_id-}" ;;
+esac
+[ -n "${_branch_environment_id}" ] || {
+  echo "Could not determine the environment ID: no branch state output and no TF_VAR_pingone_client_environment_id set." >&2
+  exit 1
+}
 
 ## terraform apply
 
@@ -90,8 +107,10 @@ echo "Running terraform apply for branch: ${_branch}, You will be prompted to en
 export TF_VAR_pingone_environment_name="${_branch}"
 
 if [ "${_generate}" = true ]; then
-  terraform -chdir="${TFDIR}" plan -generate-config-out=generated-platform.tf
+  TF_VAR_pingone_environment_id="${_branch_environment_id}" \
+    terraform -chdir="${TFDIR}" plan -generate-config-out=generated-platform.tf
 else
-  terraform -chdir="${TFDIR}" "${_command}"
+  TF_VAR_pingone_environment_id="${_branch_environment_id}" \
+    terraform -chdir="${TFDIR}" "${_command}"
 fi
 
