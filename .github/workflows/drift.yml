@@ -1,0 +1,124 @@
+name: Drift Detection and Remediation
+on:
+  schedule:
+    # Nightly at 1 AM (UTC) — off-peak, avoids CI stampede windows.
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      remediate:
+        description: 'Apply the plan to remediate detected drift'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-prod
+  cancel-in-progress: false
+
+env:
+  TERRAFORM_ENV_BASE64: ${{ secrets.TERRAFORM_ENV_BASE64 }}
+
+jobs:
+  detect:
+    name: Detect drift in prod
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      drifted: ${{ steps.plan.outputs.drifted }}
+      summary: ${{ steps.plan.outputs.summary }}
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        ref: prod
+    - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+    - name: Terraform init
+      id: init
+      run: |-
+        _secrets_file=$(mktemp)
+        trap 'rm -f "${_secrets_file}"' EXIT
+        printf '%s' "${TERRAFORM_ENV_BASE64}" | base64 -d > "${_secrets_file}"
+        . "${_secrets_file}"
+        export TF_VAR_pingone_environment_name=prod
+        terraform -chdir=terraform init -input=false \
+          -backend-config="bucket=${TF_VAR_tf_state_bucket}" \
+          -backend-config="region=${TF_VAR_tf_state_region}" \
+          -backend-config="key=${TF_VAR_tf_state_key_prefix}/prod/terraform.tfstate"
+    - name: Terraform plan (drift check)
+      id: plan
+      env:
+        TF_VAR_pingone_environment_name: prod
+      run: |-
+        _secrets_file=$(mktemp)
+        trap 'rm -f "${_secrets_file}"' EXIT
+        printf '%s' "${TERRAFORM_ENV_BASE64}" | base64 -d > "${_secrets_file}"
+        . "${_secrets_file}"
+        set +e
+        terraform -chdir=terraform plan -input=false -detailed-exitcode -no-color -out=drift.tfplan
+        _code=$?
+        set -e
+        # 0 = no drift, 1 = error, 2 = drift detected.
+        case "${_code}" in
+          0) _drifted=false ;;
+          2) _drifted=true ;;
+          *) echo "ERROR: terraform plan failed (exit ${_code})" >&2; exit "${_code}" ;;
+        esac
+        echo "drifted=${_drifted}" >> "${GITHUB_OUTPUT}"
+        {
+          echo "### Drift detection: prod"
+          if [ "${_drifted}" = "true" ]; then
+            echo "**Drift detected** — deployed configuration differs from Git (source of truth)."
+            echo '```'
+            terraform -chdir=terraform show -no-color drift.tfplan | head -80
+            echo '```'
+          else
+            echo "No drift. Deployed configuration matches Git."
+          fi
+        } >> "${GITHUB_STEP_SUMMARY}"
+        git diff --stat HEAD -- .github | true
+        echo "Drift detected: ${_drifted}"
+    - name: Require drift remediation approval
+      # The input arrives as a boolean from the UI checkbox but as the string
+      # "true" when dispatched via the REST API or gh CLI, so check both.
+      if: ${{ steps.plan.outputs.drifted == 'true' && inputs.remediate != true && inputs.remediate != 'true' }}
+      run: |-
+        {
+          echo "Drift detected but automatic remediation is disabled."
+          echo "Re-run this workflow with 'remediate=true' to apply the plan,"
+          echo "or push a rollback commit to the prod branch to revert to the approved release."
+        } >> "${GITHUB_STEP_SUMMARY}"
+        exit 1
+
+  remediate:
+    name: Remediate drift (apply plan)
+    needs: [detect]
+    if: ${{ needs.detect.outputs.drifted == 'true' && (inputs.remediate == true || inputs.remediate == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        ref: prod
+    - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+    - name: Terraform init and apply remediation plan
+      env:
+        TF_VAR_pingone_environment_name: prod
+      run: |-
+        _secrets_file=$(mktemp)
+        trap 'rm -f "${_secrets_file}"' EXIT
+        printf '%s' "${TERRAFORM_ENV_BASE64}" | base64 -d > "${_secrets_file}"
+        . "${_secrets_file}"
+        terraform -chdir=terraform init -input=false \
+          -backend-config="bucket=${TF_VAR_tf_state_bucket}" \
+          -backend-config="region=${TF_VAR_tf_state_region}" \
+          -backend-config="key=${TF_VAR_tf_state_key_prefix}/prod/terraform.tfstate"
+        # Re-plan instead of reusing the artifact: the job boundary discards it.
+        terraform -chdir=terraform apply --auto-approve -input=false
+        {
+          echo "### Drift remediation: prod"
+          echo "Deployed configuration restored to match Git (source of truth)."
+          echo "Commit: ${{ github.sha }}"
+          echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        } >> "${GITHUB_STEP_SUMMARY}"
